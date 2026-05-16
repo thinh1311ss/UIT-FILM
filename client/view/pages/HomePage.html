@@ -9,20 +9,20 @@
     <link rel="preload" href="../../vendor/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link href="../../vendor/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
-    <link rel="stylesheet" href="../../Style/HeaderAndFooter.min.css">
-    <link rel="stylesheet" href="../../Style/StarterMovie.min.css">
-    <link rel="stylesheet" href="../../Style/MovieGrid.min.css">
-    <link rel="stylesheet" href="../../Style/SearchBar.min.css">
-    <link rel="stylesheet" href="../../Style/Trailer.min.css">
-    <link rel="stylesheet" href="../../Style/FavoriteNot.min.css">
+    <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
+    <link rel="stylesheet" href="../../Style/StarterMovie.css">
+    <link rel="stylesheet" href="../../Style/MovieGrid.css">
+    <link rel="stylesheet" href="../../Style/SearchBar.css">
+    <link rel="stylesheet" href="../../Style/Trailer.css">
+    <link rel="stylesheet" href="../../Style/FavoriteNot.css">
   </head>
   <body>
     <!-- start header -->
     <div id="header"></div>
 
     <script type="module">
-      import { headerjs } from "../../js/Header.min.js";
-      import { searchBar } from "../../js/SearchBar.min.js";
+      import { headerjs } from "../../js/Header.js";
+      import { searchBar } from "../../js/SearchBar.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())
@@ -113,14 +113,14 @@
       </div>
     </main>
 
-    <script type="module" src="../../js/StarterMovie.min.js"></script>
+    <script type="module" src="../../js/StarterMovie.js"></script>
     <!-- end movie hero -->
 
     <!-- start movie grid -->
     <div id="movieGridContainer"></div>
 
     <script type="module">
-      import { movieGrid } from "../../js/MovieGrid.min.js";
+      import { movieGrid } from "../../js/MovieGrid.js";
 
       // Tải file HTML component
       fetch("../components/MovieGrid.html")

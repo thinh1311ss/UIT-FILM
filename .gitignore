@@ -18,7 +18,9 @@ server/.env
 Thumbs.db
 Desktop.ini
 
-
+# Build artifacts
+client/js/*.min.js
+client/Style/*.min.css
 
 # Logs
 *.log

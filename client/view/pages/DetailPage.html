@@ -9,19 +9,19 @@
     <link rel="preload" href="../../vendor/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="../../vendor/css/boxicons.min.css">
     <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
-    <link rel="stylesheet" href="../../Style/HeaderAndFooter.min.css">
-    <link rel="stylesheet" href="../../Style/MovieDetail.min.css">
-    <link rel="stylesheet" href="../../Style/MovieCard.min.css">
-    <link rel="stylesheet" href="../../Style/SearchBar.min.css">
-    <link rel="stylesheet" href="../../Style/Trailer.min.css">
+    <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
+    <link rel="stylesheet" href="../../Style/MovieDetail.css">
+    <link rel="stylesheet" href="../../Style/MovieCard.css">
+    <link rel="stylesheet" href="../../Style/SearchBar.css">
+    <link rel="stylesheet" href="../../Style/Trailer.css">
   </head>
   <body>
   <!-- start header -->
     <div id="header"></div>
 
     <script type="module">
-      import { headerjs } from "../../js/Header.min.js";
-      import { searchBar } from "../../js/SearchBar.min.js";
+      import { headerjs } from "../../js/Header.js";
+      import { searchBar } from "../../js/SearchBar.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())
@@ -237,8 +237,8 @@
     </script>
     <!-- end footer -->
 
-    <script type="module" src="../../js/DetailPage.min.js"></script>
-    <script type="module" src="../../js/Trailer.min.js"></script>
-    <script type="module" src="../../js/Comment.min.js"></script>
+    <script type="module" src="../../js/DetailPage.js"></script>
+    <script type="module" src="../../js/Trailer.js"></script>
+    <script type="module" src="../../js/Comment.js"></script>
   </body>
 </html>

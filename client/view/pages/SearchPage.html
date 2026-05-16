@@ -7,18 +7,18 @@
     <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg">
     <link rel="stylesheet" href="../../vendor/css/boxicons.min.css">
     <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
-    <link rel="stylesheet" href="../../Style/HeaderAndFooter.min.css">
-    <link rel="stylesheet" href="../../Style/SearchBar.min.css">
-    <link rel="stylesheet" href="../../Style/MovieCard.min.css">
-    <link rel="stylesheet" href="../../Style/SearchPage.min.css">
+    <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
+    <link rel="stylesheet" href="../../Style/SearchBar.css">
+    <link rel="stylesheet" href="../../Style/MovieCard.css">
+    <link rel="stylesheet" href="../../Style/SearchPage.css">
   </head>
 
   <body>
     <!-- Header -->
     <div id="header"></div>
     <script type="module">
-      import { headerjs } from "../../js/Header.min.js";
-      import { searchBar } from "../../js/SearchBar.min.js";
+      import { headerjs } from "../../js/Header.js";
+      import { searchBar } from "../../js/SearchBar.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())
@@ -84,6 +84,6 @@
     </script>
 
     <!-- Script -->
-    <script type="module" src="../../js/SearchPage.min.js"></script>
+    <script type="module" src="../../js/SearchPage.js"></script>
   </body>
 </html>

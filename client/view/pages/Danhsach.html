@@ -9,11 +9,11 @@
     <link rel="preload" href="../../vendor/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="../../vendor/css/boxicons.min.css">
     <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
-    <link rel="stylesheet" href="../../Style/HeaderAndFooter.min.css">
-    <link rel="stylesheet" href="../../Style/Danhsach.min.css">
-    <link rel="stylesheet" href="../../Style/MovieCard.min.css">
-    <link rel="stylesheet" href="../../Style/SearchBar.min.css">
-    <script type="module" src="../../js/Danhsach.min.js"></script>
+    <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
+    <link rel="stylesheet" href="../../Style/Danhsach.css">
+    <link rel="stylesheet" href="../../Style/MovieCard.css">
+    <link rel="stylesheet" href="../../Style/SearchBar.css">
+    <script type="module" src="../../js/Danhsach.js"></script>
   </head>
 
   <body>
@@ -21,8 +21,8 @@
     <div id="header"></div>
 
     <script type="module">
-      import { headerjs } from "../../js/Header.min.js";
-      import { searchBar } from "../../js/SearchBar.min.js";
+      import { headerjs } from "../../js/Header.js";
+      import { searchBar } from "../../js/SearchBar.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())
