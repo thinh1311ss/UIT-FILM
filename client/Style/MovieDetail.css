@@ -514,8 +514,8 @@ html, body {
 
 /* Episode grid */
 .episode-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -876,17 +876,14 @@ html, body {
 
 @media only screen and (max-width: 1200px) {
   .recommendations-grid { grid-template-columns: repeat(4, 1fr); }
-  .episode-grid { grid-template-columns: repeat(8, 1fr); }
 }
 
 @media only screen and (max-width: 980px) {
   .recommendations-grid { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md); }
-  .episode-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
 @media only screen and (max-width: 600px) {
   .recommendations-grid { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); }
-  .episode-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .tab-panel { padding: var(--spacing-md); }
   .movie-tabs { padding: var(--spacing-md) var(--spacing-lg); gap: var(--spacing-md); }
   .movie-tabs__item { font-size: var(--font-size-base); padding: var(--spacing-xs) 0; }

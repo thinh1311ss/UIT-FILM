@@ -314,7 +314,6 @@
   "detail.section.actors": "Cast",
   "detail.section.comments": "Audience reviews",
   "detail.section.recommend": "Recommendations",
-  "detail.episodes": "Episodes",
   "detail.avgRating": "Average rating",
   "detail.totalComments": "Total reviews",
   "detail.yourRating": "Your rating:",
@@ -352,9 +351,6 @@
   "tvshow.status.inproduction": "In Production",
   "tvshow.status.planned": "Planned",
   "badge.tvshow": "TV Show",
-
-  "watch.episodes": "Episodes",
-  "watch.related": "Related Movies",
 
   "cast.alsoKnownAs": "Also known as",
   "cast.biography": "Biography",
