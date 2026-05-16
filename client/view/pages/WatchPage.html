@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../../vendor/css/boxicons.min.css" />
   <link rel="stylesheet" href="../../Style/HeaderAndFooter.css" />
   <link rel="stylesheet" href="../../Style/WatchPage.css" />
+  <link rel="stylesheet" href="../../Style/MovieCard.css" />
   <link rel="stylesheet" href="../../Style/SearchBar.css" />
   <script src="../../vendor/js/hls.min.js"></script>
 </head>
@@ -60,15 +61,15 @@
 
       <!-- Episode List -->
       <div class="watch-episodes">
-        <h3><i class="fas fa-list"></i> Danh sách tập</h3>
+        <h3 data-i18n="watch.episodes"><i class="fas fa-list"></i> Danh sách tập</h3>
         <div class="server-tabs" id="server-tabs"></div>
         <div class="episode-grid" id="episode-grid"></div>
       </div>
 
       <!-- Related Movies -->
       <div class="watch-related">
-        <h3><i class="fas fa-film"></i> Phim liên quan</h3>
-        <div id="related-movies" class="watch-related__grid"></div>
+        <h3 data-i18n="watch.related"><i class="fas fa-film"></i> Phim liên quan</h3>
+        <div id="related-movies" class="recommendations-grid"></div>
       </div>
     </main>
 

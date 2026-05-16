@@ -314,6 +314,7 @@
   "detail.section.actors": "Diễn viên",
   "detail.section.comments": "Đánh giá của khán giả",
   "detail.section.recommend": "Đề xuất",
+  "detail.episodes": "Danh sách tập",
   "detail.avgRating": "Đánh giá trung bình:",
   "detail.totalComments": "Tổng số đánh giá",
   "detail.yourRating": "Đánh giá của bạn",
@@ -351,6 +352,9 @@
   "tvshow.status.inproduction": "Đang sản xuất",
   "tvshow.status.planned": "Đang lên kế hoạch",
   "badge.tvshow": "TV Show",
+
+  "watch.episodes": "Danh sách tập",
+  "watch.related": "Phim liên quan",
 
   "cast.alsoKnownAs": "Tên gọi khác",
   "cast.biography": "Giới thiệu",
