@@ -1,6 +1,4 @@
 import { KKPHIM_API } from "../config.js";
-import { cachedFetch } from "../js/cache-utils.js";
-import { observeLazyImages } from "../js/lazy-utils.js";
 const IMG_CDN = "https://phimimg.com";
 
 const params = new URLSearchParams(window.location.search);
@@ -14,7 +12,9 @@ let episodes = [];
 
 async function fetchMovie() {
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 30 * 60 * 1000);
+    const res = await fetch(`${KKPHIM_API}/phim/${slug}`);
+    if (!res.ok) throw new Error("Movie not found");
+    const data = await res.json();
     movie = data.movie;
     episodes = data.episodes || [];
 
@@ -250,58 +250,48 @@ function saveWatchProgress(video, ep) {
 
 async function renderRelatedMovies() {
   const container = document.getElementById("related-movies");
-  if (!container || !movie?.category?.length) {
-    if (container) container.innerHTML = "";
-    return;
-  }
+  if (!container || !movie) return;
 
   try {
-    const cats = movie.category.map(c => c.slug).filter(Boolean);
-    const isSingle = movie.type === "single";
-    const seen = new Set([slug]);
-    let related = [];
+    const firstCat = movie.category?.[0]?.slug;
+    if (!firstCat) { container.innerHTML = ""; return; }
 
-    for (const catSlug of cats) {
-      if (related.length >= 12) break;
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/the-loai/${catSlug}?limit=18`, 5 * 60 * 1000);
-      const items = data?.data?.items || [];
-      for (const item of items) {
-        if (related.length >= 12) break;
-        if (seen.has(item.slug)) continue;
-        seen.add(item.slug);
-        const sameType = isSingle ? item.type === "single" : item.type !== "single";
-        if (sameType) {
-          related.push(item);
-        }
-      }
-    }
+    const res = await fetch(`${KKPHIM_API}/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`);
+    const data = await res.json();
+    const items = (data?.data?.items || []).slice(0, 12);
 
     container.innerHTML = "";
-    if (!related.length) {
+    if (!items.length) {
       container.innerHTML = "<p style='color:#666;'>Không có phim liên quan.</p>";
       return;
     }
 
-    related.slice(0, 12).forEach((item) => {
+    items.forEach((item) => {
       const poster = item.poster_url
         ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
         : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+      const typeLabel = item.type === "single" ? "Phim" : "Series";
       const html = `
         <div class="movie-box">
           <a class="movie-box__card" href="../pages/DetailPage.html?slug=${item.slug}">
+            <div class="movie-box__info-top">
+              <div class="movie-box__info-ep-top"><span>${typeLabel}</span></div>
+            </div>
             <div class="movie-box__poster">
-              <img class="movie-box__poster-img lazy-img" data-src="${poster}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%231a1a2e'/%3E%3C/svg%3E" alt="${item.name}" width="300" height="450" loading="lazy" decoding="async">
+              <img class="movie-box__poster-img" src="${poster}" alt="${item.name}" loading="lazy">
             </div>
           </a>
           <div class="movie-box__info">
             <h4 class="movie-box__vietnam-title">
               <a href="../pages/DetailPage.html?slug=${item.slug}">${item.name}</a>
             </h4>
+            <h4 class="movie-box__other-title">
+              <a href="../pages/DetailPage.html?slug=${item.slug}">${item.origin_name || ""}</a>
+            </h4>
           </div>
         </div>`;
       container.insertAdjacentHTML("beforeend", html);
     });
-    observeLazyImages();
   } catch (e) {
     container.innerHTML = "";
   }
