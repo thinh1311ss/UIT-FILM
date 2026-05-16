@@ -243,9 +243,40 @@ export async function Auth_Modaljs() {
 
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-      const res = await fetch(`${API_URL}/api/auth/forgotPassword`, {
-      const res = await fetch(`${API_URL}/api/auth/verifyOTP`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: userName, email, password }),
+      });
+
+      if (res.ok) {
+        registerFormEl.reset();
+        window.openLRFModal("login");
+        showErrorMessage(
+          loginForm,
+          t("auth.messages.register_success"),
+          true
+        );
+      } else {
+        const data = await res.json();
+        showErrorMessage(registerForm, data.message || t("auth.messages.register_failed"));
+      }
+    } catch (err) {
+      showErrorMessage(registerForm, t("auth.messages.connection_error"));
+    } finally {
+      regSubmitBtn.disabled = false;
+    }
+  });
+
+  // Reset password
+  resetFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!resetFormEl.checkValidity() || resetSubmitBtn.disabled) return;
+
+    const newPassword = resetFormEl
+      .querySelector('input[name="new_password"]')
+      .value.trim();
+
+    try {
       const res = await fetch(`${API_URL}/api/auth/resetPassword`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -267,8 +298,7 @@ export async function Auth_Modaljs() {
     } catch (err) {
       showErrorMessage(resetForm, t("auth.messages.connection_error"));
     } finally {
-      btn.disabled = false;
-      btn.textContent = orig;
+      resetSubmitBtn.disabled = false;
     }
   });
 }

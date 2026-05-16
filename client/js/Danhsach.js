@@ -1,4 +1,6 @@
 import { KKPHIM_API } from "../config.js";
+import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
+import { observeLazyImages } from "../js/lazy-utils.js";
 const IMG_CDN = "https://phimimg.com";
 
 let currentPage = 1;
@@ -159,12 +161,12 @@ function getSortParams(arrange) {
 
 async function initApp() {
   try {
-    const [movieRes, tvRes] = await Promise.all([
-      fetch("../components/MovieCardRender.html"),
-      fetch("../components/TvShowCardRender.html"),
+    const [movieHtml, tvHtml] = await Promise.all([
+      cachedHTML("../components/MovieCardRender.html"),
+      cachedHTML("../components/TvShowCardRender.html"),
     ]);
-    movieCardTemplate = await movieRes.text();
-    tvShowCardTemplate = await tvRes.text();
+    movieCardTemplate = movieHtml;
+    tvShowCardTemplate = tvHtml;
 
     // Apply URL query params to filter
     const params = new URLSearchParams(window.location.search);
@@ -248,23 +250,19 @@ async function render() {
 
     if (country !== "all" && COUNTRY_SLUG_MAP[country]) {
       const countrySlug = COUNTRY_SLUG_MAP[country];
-      const res = await fetch(`${KKPHIM_API}/v1/api/quoc-gia/${countrySlug}?page=${currentPage}&limit=18`);
-      const data = await res.json();
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/quoc-gia/${countrySlug}?page=${currentPage}&limit=18`, 5 * 60 * 1000);
       items = (data?.data?.items || []).map(i => ({ ...i, _media_type: i.type === "single" ? "movie" : "tv" }));
       maxPages = estimateMaxPages(data, 18);
     } else if (genre !== "all" && GENRE_SLUG_MAP[genre]) {
       const genreSlug = GENRE_SLUG_MAP[genre];
-      const res = await fetch(`${KKPHIM_API}/v1/api/the-loai/${genreSlug}?page=${currentPage}&limit=18`);
-      const data = await res.json();
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/the-loai/${genreSlug}?page=${currentPage}&limit=18`, 5 * 60 * 1000);
       items = (data?.data?.items || []).map(i => ({ ...i, _media_type: i.type === "single" ? "movie" : "tv" }));
       maxPages = estimateMaxPages(data, 18);
     } else if (type === "all") {
-      const [movieRes, tvRes] = await Promise.all([
-        fetch(`${KKPHIM_API}/v1/api/danh-sach/phim-le?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`),
-        fetch(`${KKPHIM_API}/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`),
+      const [movieData, tvData] = await Promise.all([
+        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-le?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`, 5 * 60 * 1000),
+        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`, 5 * 60 * 1000),
       ]);
-      const movieData = await movieRes.json();
-      const tvData = await tvRes.json();
       const movieItems = (movieData?.data?.items || []).slice(0, 10);
       const tvItems = (tvData?.data?.items || []).slice(0, 10);
       const combined = [];
@@ -279,8 +277,7 @@ async function render() {
       );
     } else {
       const slug = getTypeSlug(type);
-      const res = await fetch(`${KKPHIM_API}/v1/api/danh-sach/${slug}?page=${currentPage}&limit=18&sort_field=${sort.field}&sort_type=${sort.dir}`);
-      const data = await res.json();
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/${slug}?page=${currentPage}&limit=18&sort_field=${sort.field}&sort_type=${sort.dir}`, 5 * 60 * 1000);
       items = (data?.data?.items || []).map(i => ({ ...i, _media_type: type === "tv" ? "tv" : "movie" }));
       maxPages = estimateMaxPages(data, 18);
     }
@@ -344,6 +341,7 @@ function displayMovies(movieList) {
   }
 
   DOM.movieContainer.innerHTML = html;
+  observeLazyImages();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 

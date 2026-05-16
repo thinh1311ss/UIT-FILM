@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="list.title">Danh sách phim</title>
     <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg">
+    <link rel="preload" href="../../vendor/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../../vendor/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="../../vendor/css/boxicons.min.css">
     <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
-    <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
-    <link rel="stylesheet" href="../../Style/Danhsach.css">
-    <link rel="stylesheet" href="../../Style/MovieCard.css">
-    <link rel="stylesheet" href="../../Style/SearchBar.css">
-    <script type="module" src="../../js/Danhsach.js"></script>
+    <link rel="stylesheet" href="../../Style/HeaderAndFooter.min.css">
+    <link rel="stylesheet" href="../../Style/Danhsach.min.css">
+    <link rel="stylesheet" href="../../Style/MovieCard.min.css">
+    <link rel="stylesheet" href="../../Style/SearchBar.min.css">
+    <script type="module" src="../../js/Danhsach.min.js"></script>
   </head>
 
   <body>
@@ -19,8 +21,8 @@
     <div id="header"></div>
 
     <script type="module">
-      import { headerjs } from "../../js/Header.js";
-      import { searchBar } from "../../js/SearchBar.js";
+      import { headerjs } from "../../js/Header.min.js";
+      import { searchBar } from "../../js/SearchBar.min.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())

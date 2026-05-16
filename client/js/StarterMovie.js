@@ -1,4 +1,5 @@
 import { KKPHIM_API, API_URL } from "../config.js";
+import { cachedFetch } from "../js/cache-utils.js";
 import { favoritesManager } from "../js/Favorite.js";
 
 const IMG_CDN = "https://phimimg.com";
@@ -34,8 +35,7 @@ let translations = {};
 async function loadTranslations() {
   const lang = getLang();
   try {
-    const res = await fetch(`../../public/locales/${lang}.json`);
-    translations = await res.json();
+    translations = await cachedFetch(`../../public/locales/${lang}.json`, 30 * 60 * 1000);
   } catch (err) {
     console.error("Load translations error:", err);
     translations = {};
@@ -188,8 +188,7 @@ function next() {
 // Trailer Logic
 async function getTrailerUrl(slug) {
   try {
-    const res = await fetch(`${KKPHIM_API}/phim/${slug}`);
-    const data = await res.json();
+    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 10 * 60 * 1000);
     const trailerUrl = data?.movie?.trailer_url;
     if (trailerUrl) {
       const match = trailerUrl.match(
@@ -293,12 +292,10 @@ async function fetchMovies() {
     const lang = getLang();
     console.log("Fetching movies with language:", lang);
 
-    const res = await fetch(
-      `${KKPHIM_API}/v1/api/danh-sach/phim-le?sort_field=view&sort_type=desc&limit=6`
+    const data = await cachedFetch(
+      `${KKPHIM_API}/v1/api/danh-sach/phim-le?sort_field=view&sort_type=desc&limit=6`,
+      10 * 60 * 1000
     );
-    if (!res.ok) throw new Error(`KKPHIM API error: ${res.status}`);
-
-    const data = await res.json();
     const items = data?.data?.items || [];
 
     if (!items.length) {
@@ -309,9 +306,7 @@ async function fetchMovies() {
     const movieDetails = await Promise.all(
       items.map(async (item) => {
         try {
-          const detailRes = await fetch(`${KKPHIM_API}/phim/${item.slug}`);
-          if (!detailRes.ok) throw new Error(`Detail fetch failed: ${detailRes.status}`);
-          const detailData = await detailRes.json();
+          const detailData = await cachedFetch(`${KKPHIM_API}/phim/${item.slug}`, 10 * 60 * 1000);
           const movie = detailData.movie;
 
           let overview = (movie?.content || "").trim();

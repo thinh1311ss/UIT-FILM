@@ -1,4 +1,5 @@
 import { KKPHIM_API } from "../config.js";
+import { cachedFetch } from "../js/cache-utils.js";
 
 const trailerBtn = document.getElementById("trailer-btn");
 const trailerModal = document.getElementById("trailer-modal");
@@ -18,8 +19,7 @@ async function getTrailerUrl() {
   if (!slug) return null;
 
   try {
-    const res = await fetch(`${KKPHIM_API}/phim/${slug}`);
-    const data = await res.json();
+    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 30 * 60 * 1000);
     return data.movie?.trailer_url || null;
   } catch {
     return null;

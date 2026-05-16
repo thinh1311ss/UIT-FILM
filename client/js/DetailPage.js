@@ -1,4 +1,6 @@
 import { KKPHIM_API } from "../config.js";
+import { cachedFetch } from "../js/cache-utils.js";
+import { observeLazyImages } from "../js/lazy-utils.js";
 import { favoritesManager } from "./Favorite.js";
 
 const IMG_CDN = "https://phimimg.com";
@@ -9,8 +11,7 @@ let translations = {};
 
 async function loadTranslations(lang) {
   try {
-    const res = await fetch(`../../public/locales/${lang}.json`);
-    translations = await res.json();
+    translations = await cachedFetch(`../../public/locales/${lang}.json`, 30 * 60 * 1000);
   } catch (err) {}
 }
 
@@ -38,10 +39,7 @@ function translateDOM() {
 
 async function fetchDetail(slug) {
   try {
-    const res = await fetch(`${KKPHIM_API}/phim/${slug}`);
-    if (!res.ok) throw new Error("Movie not found");
-
-    const data = await res.json();
+    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 30 * 60 * 1000);
     movie = data.movie;
     episodes = data.episodes || [];
 
@@ -306,10 +304,10 @@ async function loadRecommended(slug) {
       return;
     }
 
-    const res = await fetch(
-      `${KKPHIM_API}/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`
+    const data = await cachedFetch(
+      `${KKPHIM_API}/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`,
+      5 * 60 * 1000
     );
-    const data = await res.json();
     const items = (data?.data?.items || []).slice(0, 12);
 
     container.innerHTML = "";
@@ -329,7 +327,7 @@ async function loadRecommended(slug) {
         <div class="movie-box">
           <a class="movie-box__card" href="DetailPage.html?slug=${item.slug}">
             <div class="movie-box__info-top"><div class="movie-box__info-ep-top"><span>${item.type === "single" ? "Phim" : "Series"}</span></div></div>
-            <div class="movie-box__poster"><img class="movie-box__poster-img" src="${poster}" alt="${item.name}"></div>
+            <div class="movie-box__poster"><img class="movie-box__poster-img lazy-img" data-src="${poster}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%231a1a2e'/%3E%3C/svg%3E" alt="${item.name}" width="300" height="450" loading="lazy" decoding="async"></div>
           </a>
           <div class="movie-box__info">
             <h4 class="movie-box__vietnam-title"><a href="DetailPage.html?slug=${item.slug}">${item.name}</a></h4>
@@ -338,6 +336,7 @@ async function loadRecommended(slug) {
         </div>`;
       container.insertAdjacentHTML("beforeend", html);
     });
+    observeLazyImages();
   } catch (e) {
     container.innerHTML = `<p>${
       t("detail.recError") || "Có lỗi khi tải đề xuất."

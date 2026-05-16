@@ -1,4 +1,6 @@
 import { KKPHIM_API } from "../config.js";
+import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
+import { observeLazyImages } from "../js/lazy-utils.js";
 const IMG_CDN = "https://phimimg.com";
 
 const params = new URLSearchParams(window.location.search);
@@ -50,8 +52,8 @@ function getMediaType(item) {
 }
 
 Promise.all([
-  fetch("../components/MovieCardRender.html").then((r) => r.text()),
-  fetch("../components/TvShowCardRender.html").then((r) => r.text()),
+  cachedHTML("../components/MovieCardRender.html"),
+  cachedHTML("../components/TvShowCardRender.html"),
 ])
   .then(([movieHTML, tvHTML]) => {
     movieCardTemplate = movieHTML.trim();
@@ -64,8 +66,7 @@ async function loadResults(type = "all") {
   grid.innerHTML = `<p class="searchPage__placeholder">${t("search.loading") || "Đang tải..."}</p>`;
 
   try {
-    const res = await fetch(`${KKPHIM_API}/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}&page=${currentPage}`);
-    const data = await res.json();
+    const data = await cachedFetch(`${KKPHIM_API}/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}&page=${currentPage}`, 2 * 60 * 1000);
     const items = data?.data?.items || data.items || [];
 
     let filtered = items;
@@ -123,6 +124,7 @@ function renderResults() {
 
     grid.insertAdjacentHTML("beforeend", html);
   });
+  observeLazyImages();
 }
 
 function renderPagination() {

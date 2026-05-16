@@ -1,4 +1,6 @@
 import { KKPHIM_API } from "../config.js";
+import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
+import { observeLazyImages } from "../js/lazy-utils.js";
 
 const IMG_CDN = "https://phimimg.com";
 let movieCardTemplate = "";
@@ -12,8 +14,8 @@ const GRID_CONFIG = [
 ];
 
 Promise.all([
-  fetch("../components/MovieCardRender.html").then((r) => r.text()),
-  fetch("../components/TvShowCardRender.html").then((r) => r.text()),
+  cachedHTML("../components/MovieCardRender.html"),
+  cachedHTML("../components/TvShowCardRender.html"),
 ])
   .then(([movieHtml, tvHtml]) => {
     movieCardTemplate = movieHtml;
@@ -57,12 +59,13 @@ function renderGrid(gridId, items = [], type = "phim-le") {
     const cardHTML = createCard(item, type);
     grid.insertAdjacentHTML("beforeend", cardHTML);
   });
+
+  observeLazyImages();
 }
 
 async function fetchList(endpoint) {
   try {
-    const res = await fetch(`${KKPHIM_API}/v1/api/danh-sach/${endpoint}&limit=12`);
-    const data = await res.json();
+    const data = await cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/${endpoint}&limit=12`, 5 * 60 * 1000);
     return data?.data?.items || [];
   } catch (err) {
     console.error("Lỗi khi fetch KKPHIM:", err);

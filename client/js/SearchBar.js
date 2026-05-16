@@ -1,4 +1,5 @@
 import { KKPHIM_API } from "../config.js";
+import { cachedFetch } from "../js/cache-utils.js";
 const IMG_CDN = "https://phimimg.com";
 
 export function searchBar() {
@@ -7,8 +8,7 @@ export function searchBar() {
   let timer;
 
   async function fetchResults(query) {
-    const res = await fetch(`${KKPHIM_API}/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}`);
-    const data = await res.json();
+    const data = await cachedFetch(`${KKPHIM_API}/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}`, 2 * 60 * 1000);
     return (data?.data?.items || []).map(item => ({
       ...item,
       media_type: (item.category || []).some(c => c.slug === "phim-bo" || c.slug === "tv-shows") ? "tv" : "movie"

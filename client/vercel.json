@@ -1,5 +1,5 @@
 {
-  "buildCommand": null,
+  "buildCommand": "npm install && npm run build",
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
@@ -17,5 +17,23 @@
     { "source": "/dieu-khoan", "destination": "/view/pages/TermsOfService.html" },
     { "source": "/bao-mat", "destination": "/view/pages/PrivacyPolicy.html" },
     { "source": "/(.*)", "destination": "/$1" }
+  ],
+  "headers": [
+    {
+      "source": "/js/(.*)\\.min\\.js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/Style/(.*)\\.min\\.css",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/vendor/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
+    },
+    {
+      "source": "/(.*)\\.html",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    }
   ]
 }

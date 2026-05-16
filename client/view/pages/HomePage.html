@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UIT FILM</title>
     <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg">
+    <link rel="preload" href="../../vendor/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../../vendor/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link href="../../vendor/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
-    <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
-    <link rel="stylesheet" href="../../Style/StarterMovie.css">
-    <link rel="stylesheet" href="../../Style/MovieGrid.css">
-    <link rel="stylesheet" href="../../Style/SearchBar.css">
-    <link rel="stylesheet" href="../../Style/Trailer.css">
-    <link rel="stylesheet" href="../../Style/FavoriteNot.css">
+    <link rel="stylesheet" href="../../Style/HeaderAndFooter.min.css">
+    <link rel="stylesheet" href="../../Style/StarterMovie.min.css">
+    <link rel="stylesheet" href="../../Style/MovieGrid.min.css">
+    <link rel="stylesheet" href="../../Style/SearchBar.min.css">
+    <link rel="stylesheet" href="../../Style/Trailer.min.css">
+    <link rel="stylesheet" href="../../Style/FavoriteNot.min.css">
   </head>
   <body>
     <!-- start header -->
     <div id="header"></div>
 
     <script type="module">
-      import { headerjs } from "../../js/Header.js";
-      import { searchBar } from "../../js/SearchBar.js";
+      import { headerjs } from "../../js/Header.min.js";
+      import { searchBar } from "../../js/SearchBar.min.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())
@@ -111,14 +113,14 @@
       </div>
     </main>
 
-    <script type="module" src="../../js/StarterMovie.js"></script>
+    <script type="module" src="../../js/StarterMovie.min.js"></script>
     <!-- end movie hero -->
 
     <!-- start movie grid -->
     <div id="movieGridContainer"></div>
 
     <script type="module">
-      import { movieGrid } from "../../js/MovieGrid.js";
+      import { movieGrid } from "../../js/MovieGrid.min.js";
 
       // Tải file HTML component
       fetch("../components/MovieGrid.html")

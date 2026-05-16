@@ -6,11 +6,25 @@ let listenersBound = false;
 // Load language file
 async function loadTranslations(lang) {
   try {
+    const key = 'locale_' + lang;
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Date.now() <= parsed.exp) {
+          window.translations = parsed.data;
+          return window.translations;
+        }
+        sessionStorage.removeItem(key);
+      }
+    } catch {}
     const res = await fetch(`../../public/locales/${lang}.json`);
     const data = await res.json();
 
-    // Save to window.translations for other modules to use
     window.translations = data;
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ data, exp: Date.now() + 30 * 60 * 1000 }));
+    } catch {}
 
     return window.translations;
   } catch (error) {
