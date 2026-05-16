@@ -1,4 +1,7 @@
 {
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
   "rewrites": [
     { "source": "/", "destination": "/view/pages/HomePage.html" },
     { "source": "/(.*)", "destination": "/$1" }
