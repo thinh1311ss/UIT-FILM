@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="list.title">Danh sách phim</title>
-    <link rel="icon" type="image/png" href="../../../public/assets/image/logo-web-black.png">
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg">
+    <link rel="stylesheet" href="../../vendor/css/boxicons.min.css">
+    <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
     <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
-    <link rel="stylesheet" href="../../Services/reset.css">
     <link rel="stylesheet" href="../../Style/Danhsach.css">
     <link rel="stylesheet" href="../../Style/MovieCard.css">
     <link rel="stylesheet" href="../../Style/SearchBar.css">
@@ -58,54 +57,47 @@
 
         <!-- filter open -->
         <div class="filter__select hidden">
-          <!-- Country -->
           <div class="filter__select-nav">
-            <div class="filter__select-name" data-i18n="list.country.label">
-              Quốc gia:
-            </div>
+            <div class="filter__select-name" data-i18n="list.country.label">Quốc gia:</div>
             <div class="filter__select-list country">
-              <div
-                class="filter__select-list-item filter__select--active all"
-                data-country="all"
-                data-i18n="list.all"
-              >
-                Tất cả
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-country="US"
-                data-i18n="country.us"
-              >
-                Mỹ
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-country="JP"
-                data-i18n="country.jp"
-              >
-                Nhật Bản
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-country="KR"
-                data-i18n="country.kr"
-              >
-                Hàn Quốc
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-country="CN"
-                data-i18n="country.cn"
-              >
-                Trung Quốc
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-country="GB"
-                data-i18n="country.gb"
-              >
-                Anh
-              </div>
+              <div class="filter__select-list-item filter__select--active all" data-country="all" data-i18n="list.all">Tất cả</div>
+              <div class="filter__select-list-item" data-country="my">Mỹ</div>
+              <div class="filter__select-list-item" data-country="nhat-ban">Nhật Bản</div>
+              <div class="filter__select-list-item" data-country="han-quoc">Hàn Quốc</div>
+              <div class="filter__select-list-item" data-country="trung-quoc">Trung Quốc</div>
+              <div class="filter__select-list-item" data-country="anh">Anh</div>
+              <div class="filter__select-list-item" data-country="phap">Pháp</div>
+              <div class="filter__select-list-item" data-country="thai-lan">Thái Lan</div>
+              <div class="filter__select-list-item" data-country="dai-loan">Đài Loan</div>
+              <div class="filter__select-list-item" data-country="hong-kong">Hồng Kông</div>
+              <div class="filter__select-list-item" data-country="an-do">Ấn Độ</div>
+              <div class="filter__select-list-item" data-country="au-my">Âu Mỹ</div>
+              <div class="filter__select-list-item" data-country="canada">Canada</div>
+              <div class="filter__select-list-item" data-country="duc">Đức</div>
+              <div class="filter__select-list-item" data-country="tay-ban-nha">Tây Ban Nha</div>
+              <div class="filter__select-list-item" data-country="tho-nhi-ky">Thổ Nhĩ Kỳ</div>
+              <div class="filter__select-list-item" data-country="ha-lan">Hà Lan</div>
+              <div class="filter__select-list-item" data-country="indonesia">Indonesia</div>
+              <div class="filter__select-list-item" data-country="nga">Nga</div>
+              <div class="filter__select-list-item" data-country="mexico">Mexico</div>
+              <div class="filter__select-list-item" data-country="viet-nam">Việt Nam</div>
+              <div class="filter__select-list-item" data-country="uc">Úc</div>
+              <div class="filter__select-list-item" data-country="thuy-dien">Thụy Điển</div>
+              <div class="filter__select-list-item" data-country="malaysia">Malaysia</div>
+              <div class="filter__select-list-item" data-country="brazil">Brazil</div>
+              <div class="filter__select-list-item" data-country="philippines">Philippines</div>
+              <div class="filter__select-list-item" data-country="y">Ý</div>
+              <div class="filter__select-list-item" data-country="dan-mach">Đan Mạch</div>
+              <div class="filter__select-list-item" data-country="na-uy">Na Uy</div>
+              <div class="filter__select-list-item" data-country="thuy-si">Thụy Sĩ</div>
+              <div class="filter__select-list-item" data-country="chile">Chile</div>
+              <div class="filter__select-list-item" data-country="hy-lap">Hy Lạp</div>
+              <div class="filter__select-list-item" data-country="argentina">Argentina</div>
+              <div class="filter__select-list-item" data-country="bo-dao-nha">Bồ Đào Nha</div>
+              <div class="filter__select-list-item" data-country="ba-lan">Ba Lan</div>
+              <div class="filter__select-list-item" data-country="bi">Bỉ</div>
+              <div class="filter__select-list-item" data-country="singapore">Singapore</div>
+              <div class="filter__select-list-item" data-country="quoc-gia-khac">Quốc gia khác</div>
             </div>
           </div>
 
@@ -154,222 +146,179 @@
               </div>
 
               <!-- Common -->
-              <div
+               <div
                 class="filter__select-list-item"
-                data-genre="16"
+                data-genre="hoat-hinh"
                 data-i18n="genre.animation"
               >
                 Hoạt hình
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="35"
+                data-genre="hai-huoc"
                 data-i18n="genre.comedy"
               >
                 Hài
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="80"
+                data-genre="hinh-su"
                 data-i18n="genre.crime"
               >
                 Hình sự
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="99"
+                data-genre="tai-lieu"
                 data-i18n="genre.documentary"
               >
                 Phim tài liệu
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="18"
+                data-genre="chinh-kich"
                 data-i18n="genre.drama"
               >
                 Chính kịch
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="10751"
+                data-genre="gia-dinh"
                 data-i18n="genre.family"
               >
                 Gia đình
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="9648"
+                data-genre="bi-an"
                 data-i18n="genre.mystery"
               >
                 Bí ẩn
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="37"
-                data-i18n="genre.western"
+                data-genre="vien-tuong"
+                data-i18n="genre.scifi"
               >
-                Viễn Tây
+                Viễn Tưởng
               </div>
-
-              <!-- Only movies -->
               <div
                 class="filter__select-list-item"
-                data-genre="28"
+                data-genre="hanh-dong"
                 data-i18n="genre.action"
               >
                 Hành động
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="12"
+                data-genre="phieu-luu"
                 data-i18n="genre.adventure"
               >
                 Phiêu lưu
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="14"
+                data-genre="ky-an"
                 data-i18n="genre.fantasy"
               >
-                Giả tưởng
+                Kỳ ảo
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="36"
-                data-i18n="genre.history"
+                data-genre="co-trang"
+                data-i18n="genre.historical"
               >
-                Lịch sử
+                Cổ trang
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="27"
+                data-genre="kinh-di"
                 data-i18n="genre.horror"
               >
                 Kinh dị
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="10402"
+                data-genre="am-nhac"
                 data-i18n="genre.music"
               >
                 Âm nhạc
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="10749"
+                data-genre="tinh-cam"
                 data-i18n="genre.romance"
               >
                 Tình cảm
               </div>
               <div
                 class="filter__select-list-item"
-                data-genre="878"
-                data-i18n="genre.scifi"
-              >
-                Khoa học viễn tưởng
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="53"
-                data-i18n="genre.thriller"
-              >
-                Ly kỳ
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10752"
+                data-genre="chien-tranh"
                 data-i18n="genre.war"
               >
                 Chiến tranh
               </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="the-thao"
+                data-i18n="genre.sports"
+              >
+                Thể thao
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="tam-ly"
+              >
+                Tâm lý
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="vo-thuat"
+              >
+                Võ thuật
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="khoa-hoc"
+              >
+                Khoa học
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="than-thoai"
+              >
+                Thần thoại
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="hoc-duong"
+              >
+                Học đường
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="kinh-dien"
+              >
+                Kinh điển
+              </div>
+              <div
+                class="filter__select-list-item"
+                data-genre="phim-18"
+              >
+                Phim 18+
+              </div>
 
-              <!-- Only TV shows -->
-              <div
-                class="filter__select-list-item"
-                data-genre="10759"
-                data-i18n="genre.action_adventure"
-              >
-                Hành động & Phiêu lưu
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10762"
-                data-i18n="genre.kids"
-              >
-                Thiếu nhi
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10763"
-                data-i18n="genre.news"
-              >
-                Thời sự
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10764"
-                data-i18n="genre.reality"
-              >
-                Truyền hình thực tế
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10765"
-                data-i18n="genre.scifi_fantasy"
-              >
-                Khoa học viễn tưởng & Giả tưởng
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10766"
-                data-i18n="genre.soap"
-              >
-                Phim dài tập
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10767"
-                data-i18n="genre.talk"
-              >
-                Talk show
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-genre="10768"
-                data-i18n="genre.war_politics"
-              >
-                Chiến tranh & Chính trị
-              </div>
             </div>
           </div>
 
-          <!-- Sort -->
           <div class="filter__select-nav">
-            <div class="filter__select-name" data-i18n="list.sort.label">
-              Sắp xếp:
-            </div>
+            <div class="filter__select-name" data-i18n="list.sort.label">Sắp xếp:</div>
             <div class="filter__select-list arrange">
-              <div
-                class="filter__select-list-item filter__select--active"
-                data-arrange="new"
-                data-i18n="list.sort.new"
-              >
-                Mới nhất
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-arrange="imdb"
-                data-i18n="list.sort.imdb"
-              >
-                Điểm IMDb
-              </div>
-              <div
-                class="filter__select-list-item"
-                data-arrange="popular"
-                data-i18n="list.sort.popular"
-              >
-                Lượt xem
-              </div>
+              <div class="filter__select-list-item filter__select--active" data-arrange="new" data-i18n="list.sort.new">Mới nhất</div>
+              <div class="filter__select-list-item" data-arrange="imdb-desc">IMDB (Cao → Thấp)</div>
+              <div class="filter__select-list-item" data-arrange="imdb-asc">IMDB (Thấp → Cao)</div>
+              <div class="filter__select-list-item" data-arrange="view-desc">Lượt xem (Cao → Thấp)</div>
+              <div class="filter__select-list-item" data-arrange="view-asc">Lượt xem (Thấp → Cao)</div>
             </div>
           </div>
 

@@ -2,7 +2,7 @@
   --white: #fff;
   --item-name-english: #aaa;
   --border-color: #ffffff10;
-  --primary-text: #ffd875;
+  --primary-text: #A248BD;
 }
 
 * {
@@ -21,6 +21,7 @@ button {
 
 body {
   overflow-x: hidden;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 main {

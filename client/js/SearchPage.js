@@ -1,4 +1,5 @@
-import { TMDB_API_KEY } from "../../config.js";
+import { KKPHIM_API } from "../config.js";
+const IMG_CDN = "https://phimimg.com";
 
 const params = new URLSearchParams(window.location.search);
 const query = params.get("query") || "";
@@ -10,37 +11,31 @@ const filterButtons = document.querySelectorAll(".searchPage__filterBtn");
 
 let currentFilter = "all";
 let allResults = [];
-let currentPages = { all: 1, movie: 1, tv: 1, person: 1 };
+let currentPage = 1;
+let totalPages = 1;
 
 let movieCardTemplate = "";
 let tvCardTemplate = "";
-let castCardTemplate = "";
 
 let translations = {};
 
-// Load corresponding language JSON file
 async function loadTranslations(lang) {
   try {
-    const res = await fetch(`../../../public/locales/${lang}.json`);
+    const res = await fetch(`../../public/locales/${lang}.json`);
     translations = await res.json();
   } catch (err) {
     console.error("Load translations error:", err);
   }
 }
 
-// Function to get text by key from translation file
 function t(key) {
   return translations[key] || key;
 }
 
-// Function to get current language from LocalStorage or HTML tag
 function currentLang() {
-  return (
-    localStorage.getItem("language") || document.documentElement.lang || "vi"
-  );
+  return localStorage.getItem("language") || document.documentElement.lang || "vi";
 }
 
-// Function to translate entire DOM elements with [data-i18n] attribute
 function translateDOM() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
@@ -48,217 +43,92 @@ function translateDOM() {
   });
 }
 
-// Function to get localized title in Vietnamese (if needed), with caching
-async function getLocalizedTitle(item) {
-  const lang = currentLang();
-  if (lang !== "vi") {
-    if (item.media_type === "movie")
-      return item.original_title || item.title || "Không rõ";
-    if (item.media_type === "tv")
-      return item.original_name || item.name || "Không rõ";
-    return item.name || "Không rõ";
-  }
-
-  const title = (item.media_type === "movie" ? item.title : item.name) || "";
-  const original =
-    (item.media_type === "movie" ? item.original_title : item.original_name) ||
-    "";
-  if (title && title !== original) return title;
-
-  const cacheKey = `search_${item.media_type}_${item.id}_vi`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) return cached;
-
-  try {
-    const res = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-        original
-      )}&langpair=en|vi`
-    );
-    const data = await res.json();
-    const translated = data.responseData?.translatedText || original;
-    localStorage.setItem(cacheKey, translated);
-    return translated;
-  } catch {
-    return original;
-  }
+function getMediaType(item) {
+  const cats = (item.category || []).map(c => c.slug);
+  if (cats.includes("phim-bo") || cats.includes("tv-shows")) return "tv";
+  return "movie";
 }
 
-// Load card templates then start the app
 Promise.all([
   fetch("../components/MovieCardRender.html").then((r) => r.text()),
   fetch("../components/TvShowCardRender.html").then((r) => r.text()),
-  fetch("../components/CastCardRender.html").then((r) => r.text()),
 ])
-  .then(([movieHTML, tvHTML, castHTML]) => {
+  .then(([movieHTML, tvHTML]) => {
     movieCardTemplate = movieHTML.trim();
     tvCardTemplate = tvHTML.trim();
-    castCardTemplate = castHTML.trim();
     boot();
   })
   .catch((err) => console.error("Không tải được component:", err));
 
-// Load results list by type (all, movie, tv, person)
 async function loadResults(type = "all") {
-  grid.innerHTML = `<p class="searchPage__placeholder">${
-    t("search.loading") || "Đang tải..."
-  }</p>`;
-  const currentPage = currentPages[type];
+  grid.innerHTML = `<p class="searchPage__placeholder">${t("search.loading") || "Đang tải..."}</p>`;
 
   try {
-    let results = [];
-    let totalPages = 1;
+    const res = await fetch(`${KKPHIM_API}/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}&page=${currentPage}`);
+    const data = await res.json();
+    const items = data?.data?.items || data.items || [];
 
-    // Case search "all": search movie + tv and merge results
-    if (type === "all") {
-      const [movieRes, tvRes] = await Promise.all([
-        fetch(
-          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=vi-VN&query=${encodeURIComponent(
-            query
-          )}&page=${currentPage}`
-        ),
-        fetch(
-          `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&language=vi-VN&query=${encodeURIComponent(
-            query
-          )}&page=${currentPage}`
-        ),
-      ]);
-
-      const [movieData, tvData] = await Promise.all([
-        movieRes.json(),
-        tvRes.json(),
-      ]);
-
-      const movies = (movieData.results || []).map((item) => ({
-        ...item,
-        media_type: "movie",
-      }));
-      const tvShows = (tvData.results || []).map((item) => ({
-        ...item,
-        media_type: "tv",
-      }));
-
-      results = [...movies, ...tvShows].sort(
-        (a, b) => (b.popularity || 0) - (a.popularity || 0)
-      );
-      totalPages = Math.max(
-        movieData.total_pages || 1,
-        tvData.total_pages || 1
-      );
-    } else {
-      // Search by specific type
-      const endpoint = {
-        movie: "search/movie",
-        tv: "search/tv",
-        person: "search/person",
-      }[type];
-
-      const res = await fetch(
-        `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&language=vi-VN&query=${encodeURIComponent(
-          query
-        )}&page=${currentPage}`
-      );
-      const data = await res.json();
-
-      results = (data.results || []).map((item) => ({
-        ...item,
-        media_type: type,
-      }));
-      totalPages = data.total_pages || 1;
+    let filtered = items;
+    if (type === "movie") {
+      filtered = items.filter(item => getMediaType(item) === "movie");
+    } else if (type === "tv") {
+      filtered = items.filter(item => getMediaType(item) === "tv");
     }
 
-    // Limit to 18 results for rendering
-    allResults = results.slice(0, 18);
+    allResults = filtered.slice(0, 18);
+    totalPages = data?.data?.paginate?.total_page || data?.paginate?.total_page || 1;
 
-    // Load localized titles in parallel
-    const titlePromises = allResults.map((item) => getLocalizedTitle(item));
-    const titles = await Promise.all(titlePromises);
-
-    renderResults(titles);
-    renderPagination(currentPage, totalPages, type);
+    renderResults();
+    renderPagination();
   } catch (err) {
     console.error(err);
-    grid.innerHTML = `<p class="searchPage__placeholder">${
-      t("search.error") || "Lỗi tải dữ liệu."
-    }</p>`;
+    grid.innerHTML = `<p class="searchPage__placeholder">${t("search.error") || "Lỗi tải dữ liệu."}</p>`;
   }
 }
 
-// Attach click event when switching result filter
 filterButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    filterButtons.forEach((b) =>
-      b.classList.remove("searchPage__filterBtn--active")
-    );
+    filterButtons.forEach((b) => b.classList.remove("searchPage__filterBtn--active"));
     btn.classList.add("searchPage__filterBtn--active");
     currentFilter = btn.dataset.type;
-    currentPages[currentFilter] = 1;
+    currentPage = 1;
     loadResults(currentFilter);
   });
 });
 
-// Render results list to the screen
-function renderResults(titles) {
+function renderResults() {
   grid.innerHTML = "";
 
   if (!allResults.length) {
-    grid.innerHTML = `<p class="searchPage__placeholder">${
-      t("search.noResults") || "Không tìm thấy kết quả."
-    }</p>`;
+    grid.innerHTML = `<p class="searchPage__placeholder">${t("search.noResults") || "Không tìm thấy kết quả."}</p>`;
     return;
   }
 
-  allResults.forEach((item, i) => {
-    const title = titles[i] || "Không rõ";
+  allResults.forEach((item) => {
+    const type = getMediaType(item);
+    const isMovie = type === "movie";
+    const template = isMovie ? movieCardTemplate : tvCardTemplate;
+    const poster = item.poster_url
+      ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
+      : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+    const title = item.name || "Không rõ";
+    const original = item.origin_name || "";
 
-    if (item.media_type === "movie") {
-      const poster = item.poster_path
-        ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-        : "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
+    const html = template
+      .replace(/{{id}}/g, item.slug)
+      .replace(/{{poster}}/g, poster)
+      .replace(/{{title}}/g, title)
+      .replace(/{{original_title}}/g, original)
+      .replace(/{{name}}/g, title);
 
-      const html = movieCardTemplate
-        .replace(/{{id}}/g, item.id)
-        .replace(/{{poster}}/g, poster)
-        .replace(/{{title}}/g, title)
-        .replace(/{{original_title}}/g, item.original_title || "");
-
-      grid.insertAdjacentHTML("beforeend", html);
-    } else if (item.media_type === "tv") {
-      const poster = item.poster_path
-        ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-        : "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
-
-      const html = tvCardTemplate
-        .replace(/{{id}}/g, item.id)
-        .replace(/{{poster}}/g, poster)
-        .replace(/{{title}}/g, title)
-        .replace(/{{original_title}}/g, item.original_name || "");
-
-      grid.insertAdjacentHTML("beforeend", html);
-    } else if (item.media_type === "person") {
-      const profile = item.profile_path
-        ? `https://image.tmdb.org/t/p/w300${item.profile_path}`
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            item.name || "Unknown"
-          )}&size=300&background=1a1a2e&color=0891b2&bold=true`;
-
-      const html = castCardTemplate
-        .replace(/{{id}}/g, item.id)
-        .replace(/{{profile_path}}/g, profile)
-        .replace(/{{name}}/g, item.name || "Không rõ")
-        .replace(/{{original_name}}/g, item.original_name || "");
-
-      grid.insertAdjacentHTML("beforeend", html);
-    }
+    grid.insertAdjacentHTML("beforeend", html);
   });
 }
 
-// Render pagination (previous page / next page)
-function renderPagination(page, total, type) {
+function renderPagination() {
   const old = document.querySelector(".content__pagination");
   if (old) old.remove();
-
-  if (total <= 1) return;
+  if (totalPages <= 1) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "content__pagination";
@@ -266,11 +136,11 @@ function renderPagination(page, total, type) {
   const prev = document.createElement("button");
   prev.className = "pagination-left-arrow";
   prev.innerHTML = "&#8592;";
-  if (page === 1) prev.classList.add("disable");
+  if (currentPage <= 1) prev.classList.add("disable");
   prev.onclick = () => {
-    if (currentPages[type] > 1) {
-      currentPages[type]--;
-      loadResults(type);
+    if (currentPage > 1) {
+      currentPage--;
+      loadResults(currentFilter);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -280,24 +150,24 @@ function renderPagination(page, total, type) {
 
   const currentSpan = document.createElement("span");
   currentSpan.className = "pagination-page-current";
-  currentSpan.textContent = page;
+  currentSpan.textContent = currentPage;
 
   const separator = document.createElement("span");
   separator.textContent = "/";
 
   const totalSpan = document.createElement("span");
-  totalSpan.textContent = total;
+  totalSpan.textContent = totalPages;
 
   info.append(currentSpan, separator, totalSpan);
 
   const next = document.createElement("button");
   next.className = "pagination-right-arrow";
   next.innerHTML = "&#8594;";
-  if (page === total) next.classList.add("disable");
+  if (currentPage >= totalPages) next.classList.add("disable");
   next.onclick = () => {
-    if (currentPages[type] < total) {
-      currentPages[type]++;
-      loadResults(type);
+    if (currentPage < totalPages) {
+      currentPage++;
+      loadResults(currentFilter);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -306,26 +176,22 @@ function renderPagination(page, total, type) {
   pagination.after(wrapper);
 }
 
-// Boot the app: translate UI, load results, load language
 async function boot() {
   await loadTranslations(currentLang());
   translateDOM();
   loadResults(currentFilter);
 }
 
-// Reload when language changes in the browser
 window.addEventListener("languagechange", async () => {
   await boot();
 });
 
-// Reload page if language stored in localStorage changes
 window.addEventListener("storage", (e) => {
   if (e.key === "language") {
     location.reload();
   }
 });
 
-// When DOM is fully loaded, if templates are ready then boot the app
 document.addEventListener("DOMContentLoaded", () => {
   if (movieCardTemplate) boot();
 });

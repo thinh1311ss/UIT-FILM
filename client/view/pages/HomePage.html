@@ -4,20 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UIT FILM</title>
-    <link rel="icon" type="image/png" href="../../../public/assets/image/logo-web-black.png">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg">
+    <link href="../../vendor/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
     <link rel="stylesheet" href="../../Style/HeaderAndFooter.css">
-    <link rel="stylesheet" href="../../Services/reset.css">
     <link rel="stylesheet" href="../../Style/StarterMovie.css">
     <link rel="stylesheet" href="../../Style/MovieGrid.css">
     <link rel="stylesheet" href="../../Style/SearchBar.css">
     <link rel="stylesheet" href="../../Style/Trailer.css">
     <link rel="stylesheet" href="../../Style/FavoriteNot.css">
-    <script type="module">
-      import { checkAndShowLoginPopup } from "../../js/AutoLoginPopup.js";
-      checkAndShowLoginPopup();
-    </script>
   </head>
   <body>
     <!-- start header -->
@@ -56,12 +51,14 @@
             <div class="row" id="genres"></div>
             <p class="desc" id="desc"></p>
             <div class="controls">
-              <div class="play" id="trailer-btn">
-                <a class="play" href="#">
-                  <i class="fa-solid fa-play"></i>
-                  <span><strong>Trailer</strong></span>
-                </a>
-              </div>
+              <a class="play play-watch" id="watch-btn" href="#">
+                <i class="fa-solid fa-play"></i>
+                <span><strong data-i18n="home.watchNow">Xem ngay</strong></span>
+              </a>
+              <a class="play" id="trailer-btn" href="#">
+                <i class="fa-solid fa-play"></i>
+                <span><strong data-i18n="home.trailer">Trailer</strong></span>
+              </a>
               <div class="actions" role="group" aria-label="Actions">
                 <button aria-label="Favorite" class="favorite">
                   <svg

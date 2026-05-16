@@ -1,8 +1,10 @@
+import { API_URL } from "../config.js";
+
 class FavoritesManager {
   constructor() {
     this.isInitialized = false;
     this.currentFilm = null;
-    this.API_BASE_URL = "http://localhost:5000";
+    this.API_BASE_URL = API_URL;
     this.translations = {};
     this.loadTranslations();
   }
@@ -11,7 +13,7 @@ class FavoritesManager {
   async loadTranslations() {
     const lang = localStorage.getItem("language") || document.documentElement.lang || "vi";
     try {
-      const res = await fetch(`../../../public/locales/${lang}.json`);
+      const res = await fetch(`../../public/locales/${lang}.json`);
       this.translations = await res.json();
     } catch (err) {
       console.error("Load translations error:", err);

@@ -1,4 +1,5 @@
 import { jwtDecode } from "https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/+esm";
+import { API_URL } from "../config.js";
 
 // Helper function to get translation
 function t(key) {
@@ -168,7 +169,7 @@ export async function Auth_Modaljs() {
   async function resendOTP() {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        `${API_URL}/api/auth/forgot-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -241,172 +242,11 @@ export async function Auth_Modaljs() {
       .value.trim();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName, email, password }),
-      });
-
-      if (res.ok) {
-        registerFormEl.reset();
-        window.openLRFModal("login");
-        showErrorMessage(
-          loginForm,
-          t("auth.messages.register_success"),
-          true
-        );
-      } else {
-        showErrorMessage(registerForm, t("auth.messages.register_failed"));
-      }
-    } catch (err) {
-      showErrorMessage(registerForm, t("auth.messages.connection_error"));
-    }
-  });
-
-  // Login
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = loginForm.querySelector('input[name="email"]').value.trim();
-    const password = loginForm
-      .querySelector('input[name="password"]')
-      .value.trim();
-
-    if (!email || !password) {
-      showErrorMessage(loginForm, t("auth.messages.fill_all_fields"));
-      return;
-    }
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const token = data.accessToken;
-        const decoded = jwtDecode(token);
-
-        if (decoded.status === "banned") {
-          showErrorMessage(loginForm, t("auth.messages.account_banned"));
-          localStorage.clear();
-          return;
-        }
-
-        localStorage.setItem("accessToken", token);
-        localStorage.setItem("userName", decoded.username);
-        localStorage.setItem("userEmail", decoded.email);
-        localStorage.setItem("userStatus", decoded.status);
-
-        document.dispatchEvent(
-          new CustomEvent("userLoggedIn", { detail: data })
-        );
-        modal.classList.add("hidden");
-
-        if (decoded.role === "admin") {
-          window.location.href = "/client/view/pages/AdminUsers.html";
-        } else {
-          window.location.href = "/client/view/pages/HomePage.html";
-        }
-      } else {
-        showErrorMessage(loginForm, t("auth.messages.login_failed"));
-      }
-    } catch (err) {
-      showErrorMessage(loginForm, t("auth.messages.connection_error"));
-    }
-  });
-
-  // Forgot → Verify → Reset
-  forgotFormEl.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = forgotFormEl
-      .querySelector('input[name="email"]')
-      .value.trim();
-    if (!email) return showErrorMessage(forgotForm, t("auth.messages.enter_email"));
-
-    const btn = forgotFormEl.querySelector(".btn-primary");
-    const orig = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t("auth.messages.sending");
-
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/forgotPassword", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      if (res.ok) {
-        forgotPasswordEmail = email;
-        forgotFormEl.reset();
-        window.openLRFModal("verify");
-        showErrorMessage(
-          verifyForm,
-          t("auth.messages.otp_sent"),
-          true
-        );
-      } else {
-        showErrorMessage(forgotForm, t("auth.messages.request_failed"));
-      }
-    } catch (err) {
-      showErrorMessage(forgotForm, t("auth.messages.connection_error"));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = orig;
-    }
-  });
-
-  verifyFormEl.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const otp = verifyFormEl.querySelector('input[name="otp"]').value.trim();
-    if (!otp) return showErrorMessage(verifyForm, t("auth.messages.enter_otp"));
-
-    const btn = verifyFormEl.querySelector(".btn-primary");
-    const orig = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t("auth.messages.verifying");
-
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/verifyOTP", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotPasswordEmail, otp }),
-      });
-
-      if (res.ok) {
-        stopResendTimer();
-        verifyFormEl.reset();
-        window.openLRFModal("reset");
-        showErrorMessage(
-          resetForm,
-          t("auth.messages.verify_success"),
-          true
-        );
-      } else {
-        showErrorMessage(verifyForm, t("auth.messages.otp_incorrect"));
-      }
-    } catch (err) {
-      showErrorMessage(verifyForm, t("auth.messages.connection_error"));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = orig;
-    }
-  });
-
-  resetFormEl.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!resetFormEl.checkValidity() || resetSubmitBtn.disabled) return;
-
-    const newPassword = resetFormEl
-      .querySelector('input[name="new_password"]')
-      .value.trim();
-
-    const btn = resetSubmitBtn;
-    const orig = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t("auth.messages.processing");
-
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/resetPassword", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API_URL}/api/auth/forgotPassword`, {
+      const res = await fetch(`${API_URL}/api/auth/verifyOTP`, {
+      const res = await fetch(`${API_URL}/api/auth/resetPassword`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotPasswordEmail, newPassword }),

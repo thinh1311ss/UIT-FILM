@@ -1,3 +1,5 @@
+import { API_URL } from "../config.js";
+
 export async function AdminUsers_js() {
   // Import translation system
   const { initTranslate } = await import("./Translate.js");
@@ -47,7 +49,7 @@ export async function AdminUsers_js() {
   const errorMessage = userFormEl.querySelector(".form__error");
 
   // API base URL
-  const API_BASE = "http://localhost:5000";
+  const API_BASE = API_URL;
 
   // Get token
   const getToken = () => localStorage.getItem("accessToken");
@@ -63,7 +65,7 @@ export async function AdminUsers_js() {
       localStorage.removeItem("userName");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("refreshToken");
-      window.location.href = "/client/view/pages/HomePage.html";
+      window.location.href = "HomePage.html";
     });
   }
 

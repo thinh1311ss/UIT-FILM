@@ -1,5 +1,6 @@
 import { jwtDecode } from "https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/+esm";
 import { initTranslate } from "./Translate.js";
+import { API_URL } from "../config.js";
 
 // Helper function to get translation
 function t(key) {
@@ -151,7 +152,7 @@ export async function initUserDetail() {
         showToast(t("userdetail.logoutSuccess"));
         
         setTimeout(() => {
-          window.location.href = "/client/view/pages/HomePage.html";
+          window.location.href = "HomePage.html";
         }, 1000);
       }
     });
@@ -175,7 +176,7 @@ async function getUserDetail() {
     const userId = payloadDecoded._id;
 
     const response = await fetch(
-      `http://localhost:5000/api/authUser/userDetail/${userId}`,
+      `${API_URL}/api/authUser/userDetail/${userId}`,
       {
         method: "GET",
         headers: {
@@ -239,7 +240,7 @@ async function updateInformation() {
     };
 
     const response = await fetch(
-      `http://localhost:5000/api/authUser/updateInfo/${userId}`,
+      `${API_URL}/api/authUser/updateInfo/${userId}`,
       {
         method: "PUT",
         headers: {
@@ -302,7 +303,7 @@ async function updatePassword() {
     };
 
     const response = await fetch(
-      `http://localhost:5000/api/authUser/updatePassword/${userId}`,
+      `${API_URL}/api/authUser/updatePassword/${userId}`,
       {
         method: "PUT",
         headers: {
@@ -449,7 +450,7 @@ function handleNavigation(sectionId) {
 // Fetch user detail from server (including favorites)
 async function fetchUserDetail() {
   try {
-    const res = await fetch("http://localhost:5000/api/authUser/getUser", {
+    const res = await fetch(`${API_URL}/api/authUser/getUser`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -531,8 +532,8 @@ function renderFavorites(favorites) {
       : `<div class="favorite-card__episode-badge">${t("badge.movie")}</div>`;
 
     const detailHref = isTV
-      ? `../pages/TvShowDetail.html`
-      : `../pages/MovieDetail.html`;
+      ? `../pages/DetailPage.html`
+      : `../pages/DetailPage.html`;
 
     filmCard.innerHTML = `
       <div class="favorite-card__container">
@@ -598,7 +599,7 @@ async function removeFromFavorites(filmId, filmTitle, type = "Movie") {
 
   try {
     const token = localStorage.getItem("accessToken");
-    const response = await fetch(`http://localhost:5000/api/favorites/toggle`, {
+    const response = await fetch(`${API_URL}/api/favorites/toggle`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

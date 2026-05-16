@@ -1,12 +1,9 @@
-// StarterMovie.js - Fix favorite part to support multiple languages
-import { TMDB_API_KEY } from "../../config.js";
+import { KKPHIM_API, API_URL } from "../config.js";
 import { favoritesManager } from "../js/Favorite.js";
 
-const TMDB_BASE = "https://api.themoviedb.org/3";
-const API_KEY = TMDB_API_KEY;
-const IMG_W780 = "https://image.tmdb.org/t/p/w780";
-const IMG_ORI = "https://image.tmdb.org/t/p/original";
+const IMG_CDN = "https://phimimg.com";
 const FALLBACK_POSTER = "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Image";
+const FALLBACK_BG = "https://placehold.co/1920x1080/1a1a2e/0891b2?text=No+Image";
 
 // DOM Elements
 const slidesEl = document.getElementById("slides");
@@ -37,7 +34,7 @@ let translations = {};
 async function loadTranslations() {
   const lang = getLang();
   try {
-    const res = await fetch(`../../../public/locales/${lang}.json`);
+    const res = await fetch(`../../public/locales/${lang}.json`);
     translations = await res.json();
   } catch (err) {
     console.error("Load translations error:", err);
@@ -65,113 +62,9 @@ function getLang() {
   return stored || htmlLang || "vi";
 }
 
-function tmdbLang(lang) {
-  return lang === "vi" ? "vi-VN" : "en-US";
-}
 
-function formatDuration(runtime, lang) {
-  if (!runtime) return "N/A";
-  if (lang === "vi") return `${runtime} phút`;
-  return `${runtime} min`;
-}
 
-function getCache(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    const { value, exp } = JSON.parse(raw);
-    if (exp && Date.now() > exp) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return value;
-  } catch {
-    return null;
-  }
-}
 
-function setCache(key, value, ttlMs = 1000 * 60 * 60 * 24 * 30) {
-  try {
-    localStorage.setItem(
-      key,
-      JSON.stringify({ value, exp: Date.now() + ttlMs })
-    );
-  } catch {}
-}
-
-async function translateText(text, targetLang) {
-  if (!text || !text.trim() || targetLang === "en") return text;
-  const trimmed = text.trim();
-  if (trimmed.length < 10) return trimmed;
-
-  try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-      trimmed
-    )}&langpair=en|${targetLang}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`MyMemory API error: ${res.status}`);
-
-    const data = await res.json();
-    const translated = data?.responseData?.translatedText;
-
-    if (!translated || translated.length < 10) return trimmed;
-
-    const similarity = calculateSimilarity(trimmed, translated);
-    if (similarity > 0.9) {
-      console.warn("Translation too similar to original, using original text");
-      return trimmed;
-    }
-    return translated;
-  } catch (err) {
-    console.warn("Translation failed:", err.message);
-    return trimmed;
-  }
-}
-
-function calculateSimilarity(str1, str2) {
-  const longer = str1.length > str2.length ? str1 : str2;
-  const shorter = str1.length > str2.length ? str2 : str1;
-  if (longer.length === 0) return 1.0;
-  const editDistance = levenshtein(longer, shorter);
-  return (longer.length - editDistance) / longer.length;
-}
-
-function levenshtein(str1, str2) {
-  const matrix = [];
-  for (let i = 0; i <= str2.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= str1.length; j++) {
-    matrix[0][j] = j;
-  }
-  for (let i = 1; i <= str2.length; i++) {
-    for (let j = 1; j <= str1.length; j++) {
-      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-  return matrix[str2.length][str1.length];
-}
-
-async function translateWithCache(text, movieId, targetLang) {
-  if (!text || !text.trim()) return "";
-  if (targetLang === "en") return text;
-
-  const key = `hero_ov_${movieId}_${targetLang}`;
-  const cached = getCache(key);
-  if (cached) return cached;
-
-  const translated = await translateText(text, targetLang);
-  setCache(key, translated);
-  return translated;
-}
 
 // DOM Creation
 const createEl = (tag, cls, html) => {
@@ -293,23 +186,18 @@ function next() {
 }
 
 // Trailer Logic
-async function getTrailerKey(movieId, type = "movie") {
+async function getTrailerUrl(slug) {
   try {
-    const res = await fetch(
-      `${TMDB_BASE}/${type}/${movieId}/videos?api_key=${API_KEY}&language=en-US`
-    );
+    const res = await fetch(`${KKPHIM_API}/phim/${slug}`);
     const data = await res.json();
-    if (!data.results || data.results.length === 0) return null;
-
-    const trailer = data.results.find(
-      (v) => v.type === "Trailer" && v.site === "YouTube"
-    );
-    const teaser = data.results.find(
-      (v) => v.type === "Teaser" && v.site === "YouTube"
-    );
-    const fallback = data.results.find((v) => v.site === "YouTube");
-
-    return (trailer || teaser || fallback)?.key || null;
+    const trailerUrl = data?.movie?.trailer_url;
+    if (trailerUrl) {
+      const match = trailerUrl.match(
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/
+      );
+      if (match) return match[1];
+    }
+    return null;
   } catch (err) {
     console.error("Lỗi lấy trailer:", err);
     return null;
@@ -403,84 +291,61 @@ function showSimpleNotification(message, type = "info") {
 async function fetchMovies() {
   try {
     const lang = getLang();
-    console.log("🌐 Fetching movies with language:", lang);
+    console.log("Fetching movies with language:", lang);
 
-    const url = `${TMDB_BASE}/trending/movie/week?api_key=${API_KEY}&language=${tmdbLang(
-      lang
-    )}&page=1`;
+    const res = await fetch(
+      `${KKPHIM_API}/v1/api/danh-sach/phim-le?sort_field=view&sort_type=desc&limit=6`
+    );
+    if (!res.ok) throw new Error(`KKPHIM API error: ${res.status}`);
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`TMDB API error: ${res.status}`);
+    const data = await res.json();
+    const items = data?.data?.items || [];
 
-    const { results } = await res.json();
-    const basicMovies = results?.slice(0, 6) || [];
-
-    if (!basicMovies.length) {
-      console.warn("No movies returned from TMDB");
+    if (!items.length) {
+      console.warn("No movies returned from KKPHIM");
       return;
     }
 
     const movieDetails = await Promise.all(
-      basicMovies.map(async (m) => {
+      items.map(async (item) => {
         try {
-          const detailRes = await fetch(
-            `${TMDB_BASE}/movie/${m.id}?api_key=${API_KEY}&language=${tmdbLang(
-              lang
-            )}`
-          );
-          if (!detailRes.ok)
-            throw new Error(`Detail fetch failed: ${detailRes.status}`);
+          const detailRes = await fetch(`${KKPHIM_API}/phim/${item.slug}`);
+          if (!detailRes.ok) throw new Error(`Detail fetch failed: ${detailRes.status}`);
+          const detailData = await detailRes.json();
+          const movie = detailData.movie;
 
-          const detail = await detailRes.json();
+          let overview = (movie?.content || "").trim();
+          if (!overview) overview = lang === "vi" ? "Không có mô tả." : "No overview available.";
 
-          let overview = (detail.overview || "").trim();
-          let title = (
-            detail.title ||
-            detail.original_title ||
-            "Unknown"
-          ).trim();
-
-          if (lang === "vi") {
-            if (!overview || overview.length < 20) {
-              const enRes = await fetch(
-                `${TMDB_BASE}/movie/${m.id}?api_key=${API_KEY}&language=en-US`
-              );
-              if (enRes.ok) {
-                const enDetail = await enRes.json();
-                const enOverview = (enDetail.overview || "").trim();
-
-                if (enOverview && enOverview.length > 20) {
-                  overview = await translateWithCache(enOverview, m.id, "vi");
-                }
-              }
-            }
-          }
-          if (!overview)
-            overview =
-              lang === "vi" ? "Không có mô tả." : "No overview available.";
+          const thumbUrl = item.thumb_url
+            ? item.thumb_url.startsWith("http")
+              ? item.thumb_url
+              : `${IMG_CDN}/${item.thumb_url}`
+            : "";
+          const posterUrl = item.poster_url
+            ? item.poster_url.startsWith("http")
+              ? item.poster_url
+              : `${IMG_CDN}/${item.poster_url}`
+            : "";
 
           return {
-            id: m.id,
-            title: title,
-            englishTitle: detail.original_title || title,
-            backgroundImage: detail.backdrop_path
-              ? `${IMG_ORI}${detail.backdrop_path}`
-              : "https://placehold.co/1920x1080/1a1a2e/0891b2?text=No+Image",
-            thumbnailImage: detail.poster_path
-              ? `${IMG_W780}${detail.poster_path}`
-              : FALLBACK_POSTER,
-            imdbRating: (detail.vote_average || 0).toFixed(1),
-            year: detail.release_date?.split("-")[0] || "N/A",
-            duration: detail.runtime
-              ? formatDuration(detail.runtime, lang)
-              : lang === "vi"
-              ? "N/A"
-              : "N/A",
-            genres: detail.genres?.map((g) => g.name) || [],
+            id: item.slug,
+            slug: item.slug,
+            title: item.name || item.origin_name,
+            englishTitle: item.origin_name || item.name,
+            backgroundImage: thumbUrl || posterUrl || FALLBACK_BG,
+            thumbnailImage: posterUrl || FALLBACK_POSTER,
+            imdbRating:
+              movie?.tmdb?.vote_average > 0
+                ? movie.tmdb.vote_average.toFixed(1)
+                : "N/A",
+            year: item.year ? String(item.year) : "N/A",
+            duration: item.time || "N/A",
+            genres: item.category?.map((g) => g.name) || [],
             description: overview,
           };
         } catch (err) {
-          console.warn(`⚠️ Error fetching movie ${m.id}:`, err);
+          console.warn("Error fetching movie", item.slug, err);
           return null;
         }
       })
@@ -489,7 +354,7 @@ async function fetchMovies() {
     movies = movieDetails.filter(Boolean);
 
     if (movies.length > 0) {
-      console.log(`✅ Loaded ${movies.length} movies successfully`);
+      console.log(`Loaded ${movies.length} movies successfully`);
       update();
       clearInterval(timer);
       timer = setInterval(next, 5000);
@@ -497,7 +362,7 @@ async function fetchMovies() {
       console.warn("No valid movies to display");
     }
   } catch (err) {
-    console.error(" Fetch TMDB failed:", err);
+    console.error("Fetch KKPHIM failed:", err);
   }
 }
 
@@ -508,7 +373,7 @@ if (trailerBtn) {
     const currentMovie = movies[index];
     if (!currentMovie) return;
 
-    const key = await getTrailerKey(currentMovie.id);
+    const key = await getTrailerUrl(currentMovie.slug);
     if (!key) {
       alert("Xin lỗi, không tìm thấy trailer cho phim này.");
       return;
@@ -566,7 +431,7 @@ if (favoriteBtn) {
         posterPath: currentMovie.thumbnailImage,
       };
 
-      const response = await fetch("http://localhost:5000/api/favorites/toggle", {
+      const response = await fetch(`${API_URL}/api/favorites/toggle`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -609,12 +474,23 @@ if (favoriteBtn) {
   });
 }
 
+// Watch Button (Xem ngay)
+const watchBtn = document.getElementById("watch-btn");
+if (watchBtn) {
+  watchBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    const currentMovie = movies[index];
+    if (!currentMovie) return;
+    window.location.href = `../pages/DetailPage.html?slug=${currentMovie.slug}`;
+  });
+}
+
 // Info Button
 if (infoBtn) {
   infoBtn.addEventListener("click", () => {
     const currentMovie = movies[index];
     if (!currentMovie) return;
-    window.location.href = `../pages/MovieDetail.html?id=${currentMovie.id}`;
+    window.location.href = `../pages/DetailPage.html?slug=${currentMovie.slug}`;
   });
 }
 

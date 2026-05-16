@@ -6,7 +6,7 @@ let listenersBound = false;
 // Load language file
 async function loadTranslations(lang) {
   try {
-    const res = await fetch(`../../../public/locales/${lang}.json`);
+    const res = await fetch(`../../public/locales/${lang}.json`);
     const data = await res.json();
 
     // Save to window.translations for other modules to use

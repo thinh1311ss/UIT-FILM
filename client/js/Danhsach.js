@@ -1,337 +1,201 @@
-import { TMDB_API_KEY } from "../../config.js";
+import { KKPHIM_API } from "../config.js";
+const IMG_CDN = "https://phimimg.com";
 
-// General configuration
-const BASE_URL = "https://api.themoviedb.org/3";
-const IMAGE_URL = "https://image.tmdb.org/t/p/w300";
-const PLACEHOLDER_IMAGE =
-  "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
-let LANGUAGE = getLang();
-
-// Save current filter information
 let currentPage = 1;
-let currentMovieType = "all";
-let currentCountry = "";
-let currentGenre = [];
-let currentArrange = "new";
+let currentType = "all";
+let currentSort = "modified.time";
+let currentSortDir = "desc";
+let currentGenre = "all";
 let totalPages = 100;
 
-// Template Card for movie and tvShows
 let movieCardTemplate = "";
 let tvShowCardTemplate = "";
 
-// Genres only for movies and tv shows
-const movieOnlyGenres = [
-  "28",
-  "12",
-  "14",
-  "36",
-  "27",
-  "10402",
-  "10749",
-  "878",
-  "53",
-  "10752",
-];
-const tvOnlyGenres = [
-  "10759",
-  "10762",
-  "10763",
-  "10764",
-  "10765",
-  "10766",
-  "10767",
-  "10768",
-];
+const DOM = {
+  movieContainer: document.querySelector(".movie"),
+  pageCurrent: document.querySelector(".pagination-page-current"),
+  pageTotal: document.querySelector(".pagination__main span:last-child"),
+  leftPag: document.querySelector(".pagination-left-arrow"),
+  rightPag: document.querySelector(".pagination-right-arrow"),
+  filterToggle: document.querySelector(".filter__toggle"),
+  filterSelect: document.querySelector(".filter__select"),
+  faFilter: document.querySelector(".fa-solid.fa-filter"),
+  filterCloseBtn: document.querySelector(".filter__close-btn"),
+  filterBtn: document.querySelector(".filter__select-btn"),
+  typeItems: document.querySelectorAll(".filter__select-list.movie-type .filter__select-list-item"),
+  arrangeItems: document.querySelectorAll(".filter__select-list.arrange .filter__select-list-item"),
+  genreItems: document.querySelectorAll(".filter__select-list.movie-genre .filter__select-list-item"),
+  countryItems: document.querySelectorAll(".filter__select-list.country .filter__select-list-item"),
+};
 
-// Declare commonly used DOM elements
+const GENRE_SLUG_MAP = {
+  "hanh-dong": "hanh-dong",
+  "tinh-cam": "tinh-cam",
+  "hai-huoc": "hai-huoc",
+  "co-trang": "co-trang",
+  "tam-ly": "tam-ly",
+  "hinh-su": "hinh-su",
+  "chien-tranh": "chien-tranh",
+  "the-thao": "the-thao",
+  "vo-thuat": "vo-thuat",
+  "vien-tuong": "vien-tuong",
+  "phieu-luu": "phieu-luu",
+  "khoa-hoc": "khoa-hoc",
+  "kinh-di": "kinh-di",
+  "am-nhac": "am-nhac",
+  "than-thoai": "than-thoai",
+  "tai-lieu": "tai-lieu",
+  "gia-dinh": "gia-dinh",
+  "chinh-kich": "chinh-kich",
+  "bi-an": "bi-an",
+  "hoc-duong": "hoc-duong",
+  "kinh-dien": "kinh-dien",
+  "hoat-hinh": "hoat-hinh",
+  "phim-18": "phim-18",
+  "short-drama": "short-drama",
+};
 
-// DOM elements inside the filter
-const filterToggle = document.querySelector(".filter__toggle"); 
-const filterSelect = document.querySelector(".filter__select"); 
-const faFilter = document.querySelector(".fa-solid.fa-filter"); 
-const filterCloseBtn = document.querySelector(".filter__close-btn"); 
-const filterBtn = document.querySelector(".filter__select-btn"); 
+const COUNTRY_SLUG_MAP = {
+  "trung-quoc": "trung-quoc",
+  "han-quoc": "han-quoc",
+  "nhat-ban": "nhat-ban",
+  "thai-lan": "thai-lan",
+  "au-my": "au-my",
+  "dai-loan": "dai-loan",
+  "hong-kong": "hong-kong",
+  "an-do": "an-do",
+  "anh": "anh",
+  "phap": "phap",
+  "canada": "canada",
+  "duc": "duc",
+  "tay-ban-nha": "tay-ban-nha",
+  "tho-nhi-ky": "tho-nhi-ky",
+  "ha-lan": "ha-lan",
+  "indonesia": "indonesia",
+  "nga": "nga",
+  "mexico": "mexico",
+  "ba-lan": "ba-lan",
+  "uc": "uc",
+  "thuy-dien": "thuy-dien",
+  "malaysia": "malaysia",
+  "brazil": "brazil",
+  "philippines": "philippines",
+  "bo-dao-nha": "bo-dao-nha",
+  "y": "y",
+  "dan-mach": "dan-mach",
+  "thuy-si": "thuy-si",
+  "viet-nam": "viet-nam",
+  "chile": "chile",
+  "hy-lap": "hy-lap",
+  "nigeria": "nigeria",
+  "argentina": "argentina",
+  "singapore": "singapore",
+  "uae": "uae",
+  "na-uy": "na-uy",
+  "ireland": "ireland",
+  "colombia": "colombia",
+  "phan-lan": "phan-lan",
+  "chau-phi": "chau-phi",
+  "nam-phi": "nam-phi",
+  "ukraina": "ukraina",
+  "a-rap-xe-ut": "a-rap-xe-ut",
+};
 
-const selectListItemCountry = document.querySelectorAll(
-  ".filter__select-list.country .filter__select-list-item"
-); // List of items in the "Country" section
-const selectListItemCountryAll = document.querySelector(
-  ".filter__select-list.country .all"
-); // "All" item in the "Country" section
-const itemMovieType = document.querySelectorAll(
-  ".filter__select-list.movie-type .filter__select-list-item"
-); // List of items in the "Movie Type" section
-const itemMovieGenre = document.querySelectorAll(
-  ".filter__select-list.movie-genre .filter__select-list-item"
-); // List of items in the "Genre" section
-const itemMovieGenreAll = document.querySelector(
-  ".filter__select-list.movie-genre .all"
-); // "All" item in the "Genre" section
-const itemArrange = document.querySelectorAll(
-  ".filter__select-list.arrange .filter__select-list-item"
-); // List of items in the "Arrange" section
-
-// DOM elements for movie container and pagination
-const movieContainer = document.querySelector(".movie"); // Movie container
-const pageCurrentSpan = document.querySelector(".pagination-page-current"); // Current page number
-const pageTotalSpan = document.querySelector(
-  ".pagination__main span:last-child"
-); // Total number of pages
-const leftPag = document.querySelector(".pagination-left-arrow"); // Previous page button
-const rightPag = document.querySelector(".pagination-right-arrow"); // Next page button
-
-// Toggle filter visibility
-filterToggle.addEventListener("click", () => {
-  filterSelect.classList.toggle("hidden");
-  faFilter.classList.toggle("fa-filter-active");
+DOM.filterToggle?.addEventListener("click", () => {
+  DOM.filterSelect?.classList.toggle("hidden");
+  DOM.faFilter?.classList.toggle("fa-filter-active");
 });
 
-// Close filter toggle when clicking the "Filter results" button
-filterCloseBtn.addEventListener("click", () => {
-  filterSelect.classList.add("hidden");
-  faFilter.classList.remove("fa-filter-active");
+DOM.filterCloseBtn?.addEventListener("click", () => {
+  DOM.filterSelect?.classList.add("hidden");
+  DOM.faFilter?.classList.remove("fa-filter-active");
 });
 
-function getLang() {
-  const lang =
-    localStorage.getItem("language") || document.documentElement.lang || "vi";
-  return lang === "vi" ? "vi-VN" : "en-US";
-}
-
-// Active 1 item only in the "Country" section
-selectListItemCountry.forEach((current) => {
-  current.addEventListener("click", () => {
-    const currentActive = document.querySelector(
-      ".filter__select-list.country .filter__select--active"
-    );
-    if (currentActive) {
-      currentActive.classList.remove("filter__select--active");
-    }
-    current.classList.add("filter__select--active");
+DOM.typeItems?.forEach((item) => {
+  item.addEventListener("click", () => {
+    DOM.typeItems.forEach((b) => b.classList.remove("filter__select--active"));
+    item.classList.add("filter__select--active");
   });
 });
 
-// Function to update "Genre" items visibility based on the selected "Movie Type"
-function updateGenreVisibility(type) {
-  const allGenreItems = document.querySelectorAll(
-    ".filter__select-list.movie-genre .filter__select-list-item"
-  );
-
-  allGenreItems.forEach((item) => {
-    const genreId = item.getAttribute("data-genre");
-
-    if (genreId === "all") return;
-
-    // If "Movie Type" is movie, hide items only available for TV shows; if TV, hide items only available for movies; if all, show all
-    if (type === "movie") {
-      if (tvOnlyGenres.includes(genreId)) {
-        item.classList.add("hidden");
-        item.classList.remove("filter__select--active");
-      } else {
-        item.classList.remove("hidden");
-      }
-    } else if (type === "tv") {
-      if (movieOnlyGenres.includes(genreId)) {
-        item.classList.add("hidden");
-        item.classList.remove("filter__select--active");
-      } else {
-        item.classList.remove("hidden");
-      }
-    } else {
-      item.classList.remove("hidden");
-    }
+DOM.arrangeItems?.forEach((item) => {
+  item.addEventListener("click", () => {
+    DOM.arrangeItems.forEach((b) => b.classList.remove("filter__select--active"));
+    item.classList.add("filter__select--active");
   });
+});
 
-  checkGenreLastActive();
+DOM.genreItems?.forEach((item) => {
+  item.addEventListener("click", () => {
+    DOM.genreItems.forEach((b) => b.classList.remove("filter__select--active"));
+    item.classList.add("filter__select--active");
+  });
+});
+
+DOM.countryItems?.forEach((item) => {
+  item.addEventListener("click", () => {
+    DOM.countryItems.forEach((b) => b.classList.remove("filter__select--active"));
+    item.classList.add("filter__select--active");
+  });
+});
+
+function getTypeSlug(type) {
+  const map = { all: "all", movie: "phim-le", tv: "phim-bo" };
+  return map[type] || "all";
 }
 
-// Function to activate the "All" item if no other item is active in the "Genre" section
-function checkGenreLastActive() {
-  const lastActive = document.querySelector(
-    ".filter__select-list.movie-genre .filter__select--active"
-  );
-
-  if (!lastActive) {
-    itemMovieGenreAll.classList.add("filter__select--active");
+function getSortParams(arrange) {
+  switch (arrange) {
+    case "new": return { field: "modified.time", dir: "desc" };
+    case "popular": return { field: "view", dir: "desc" };
+    case "imdb": return { field: "rating", dir: "desc" };
+    case "imdb-asc": return { field: "rating", dir: "asc" };
+    case "imdb-desc": return { field: "rating", dir: "desc" };
+    case "view-asc": return { field: "view", dir: "asc" };
+    case "view-desc": return { field: "view", dir: "desc" };
+    default: return { field: "modified.time", dir: "desc" };
   }
 }
 
-// Active 1 item only in the "Movie Type" section
-itemMovieType.forEach((current) => {
-  current.addEventListener("click", () => {
-    const itemMovieTypeActive = document.querySelector(
-      ".filter__select-list.movie-type .filter__select--active"
-    );
-
-    if (current !== itemMovieTypeActive) {
-      current.classList.add("filter__select--active");
-      itemMovieTypeActive.classList.remove("filter__select--active");
-
-      const selectedType = current.getAttribute("data-type");
-      updateGenreVisibility(selectedType);
-    }
-  });
-});
-
-// Active "All" item will remove active from other items in the "Genre" section
-itemMovieGenreAll.addEventListener("click", () => {
-  itemMovieGenre.forEach((current) => {
-    current.classList.remove("filter__select--active");
-  });
-  itemMovieGenreAll.classList.add("filter__select--active");
-});
-
-// Allow multiple items to be active except the "All" item in the "Genre" section
-itemMovieGenre.forEach((current) => {
-  current.addEventListener("click", () => {
-    itemMovieGenreAll.classList.remove("filter__select--active");
-    current.classList.toggle("filter__select--active");
-
-    checkGenreLastActive();
-  });
-});
-
-// Active 1 item only in the "Arrange" section
-itemArrange.forEach((current) => {
-  current.addEventListener("click", () => {
-    const itemArrangeActive = document.querySelector(
-      ".filter__select-list.arrange .filter__select--active"
-    );
-
-    if (itemArrangeActive !== current) {
-      current.classList.add("filter__select--active");
-      itemArrangeActive.classList.remove("filter__select--active");
-    }
-  });
-});
-
-// Function to get params from URL
-function getUrlParams() {
-  const params = new URLSearchParams(window.location.search);
-
-  return {
-    type: params.get("type"),
-    genre: params.get("genre"),
-    country: params.get("country"),
-  };
-}
-
-// Reset all filter items to default
-function resetFiltersToDefault() {
-  // Active item "All" in the "Country" section
-  selectListItemCountry.forEach((item) => {
-    item.classList.remove("filter__select--active");
-  });
-  selectListItemCountryAll.classList.add("filter__select--active");
-
-  // Active item "All" in the "Movie Type" section
-  itemMovieType.forEach((item) => {
-    item.classList.remove("filter__select--active");
-  });
-  document
-    .querySelector('.filter__select-list.movie-type [data-type="all"]')
-    .classList.add("filter__select--active");
-
-  // Active item "All" in the "Genre" section
-  itemMovieGenre.forEach((item) => {
-    item.classList.remove("filter__select--active");
-  });
-  itemMovieGenreAll.classList.add("filter__select--active");
-
-  // Active item "Newest" in the "Arrange" section
-  itemArrange.forEach((item) => {
-    item.classList.remove("filter__select--active");
-  });
-  document
-    .querySelector('.filter__select-list.arrange [data-arrange="new"]')
-    .classList.add("filter__select--active");
-
-  // Reset filter
-  currentMovieType = "all";
-  currentCountry = "";
-  currentGenre = [];
-  currentArrange = "new";
-  currentPage = 1;
-
-  updateGenreVisibility("all");
-}
-
-// Function to apply params from URL
-function applyUrlParams() {
-  const params = getUrlParams();
-
-  resetFiltersToDefault();
-
-  // Activate the corresponding "Movie Type" from the URL
-  if (params.type) {
-    currentMovieType = params.type;
-
-    itemMovieType.forEach((item) => {
-      item.classList.remove("filter__select--active");
-    });
-
-    const targetType = document.querySelector(
-      `.filter__select-list.movie-type [data-type="${params.type}"]`
-    );
-    if (targetType) {
-      targetType.classList.add("filter__select--active");
-    }
-
-    updateGenreVisibility(params.type);
-  }
-
-  // Activate the corresponding "Genre" from the URL
-  if (params.genre) {
-    currentGenre = [params.genre];
-
-    itemMovieGenreAll.classList.remove("filter__select--active");
-
-    const targetGenre = document.querySelector(
-      `.filter__select-list.movie-genre [data-genre="${params.genre}"]`
-    );
-    if (targetGenre) {
-      targetGenre.classList.add("filter__select--active");
-    }
-  }
-
-  // Activate the corresponding "Country" from the URL
-  if (params.country) {
-    currentCountry = params.country;
-
-    selectListItemCountryAll.classList.remove("filter__select--active");
-
-    const targetCountry = document.querySelector(
-      `.filter__select-list.country [data-country="${params.country}"]`
-    );
-    if (targetCountry) {
-      targetCountry.classList.add("filter__select--active");
-    }
-  }
-}
-
-// Initialize movie list
 async function initApp() {
   try {
-    // Load 2 templates for movies and TV shows
-    const [movieResponse, tvResponse] = await Promise.all([
+    const [movieRes, tvRes] = await Promise.all([
       fetch("../components/MovieCardRender.html"),
       fetch("../components/TvShowCardRender.html"),
     ]);
+    movieCardTemplate = await movieRes.text();
+    tvShowCardTemplate = await tvRes.text();
 
-    movieCardTemplate = await movieResponse.text();
-    tvShowCardTemplate = await tvResponse.text();
+    // Apply URL query params to filter
+    const params = new URLSearchParams(window.location.search);
+    const urlType = params.get("type");
+    const urlGenre = params.get("genre");
+    const urlCountry = params.get("country");
 
-    // If it's the "Filter" section, open the filter toggle
-    const params = getUrlParams();
-    const isFilterNav =
-      params.type === "all" && !params.genre && !params.country;
-
-    if (isFilterNav) {
-      filterSelect.classList.remove("hidden");
-      faFilter.classList.add("fa-filter-active");
+    if (urlType) {
+      DOM.typeItems?.forEach((item) => {
+        if (item.getAttribute("data-type") === urlType) {
+          DOM.typeItems.forEach((b) => b.classList.remove("filter__select--active"));
+          item.classList.add("filter__select--active");
+        }
+      });
     }
-
-    applyUrlParams();
+    if (urlGenre) {
+      DOM.genreItems?.forEach((item) => {
+        if (item.getAttribute("data-genre") === urlGenre) {
+          DOM.genreItems.forEach((b) => b.classList.remove("filter__select--active"));
+          item.classList.add("filter__select--active");
+        }
+      });
+    }
+    if (urlCountry) {
+      DOM.countryItems?.forEach((item) => {
+        if (item.getAttribute("data-country") === urlCountry) {
+          DOM.countryItems.forEach((b) => b.classList.remove("filter__select--active"));
+          item.classList.add("filter__select--active");
+        }
+      });
+    }
 
     await render();
   } catch (error) {
@@ -341,254 +205,184 @@ async function initApp() {
 
 initApp();
 
-// Render movies according to "Movie Type"
 async function render() {
   try {
-    if (currentMovieType === "all") {
-      await renderBothMovieAndTV();
-    } else {
-      await renderOneType();
+    const activeType = document.querySelector(".filter__select-list.movie-type .filter__select--active");
+    const type = activeType?.getAttribute("data-type") || "all";
+
+    const activeArrange = document.querySelector(".filter__select-list.arrange .filter__select--active");
+    const arrange = activeArrange?.getAttribute("data-arrange") || "new";
+    const sort = getSortParams(arrange);
+
+    const activeGenre = document.querySelector(".filter__select-list.movie-genre .filter__select--active");
+    const genre = activeGenre?.getAttribute("data-genre") || "all";
+
+    const activeCountry = document.querySelector(".filter__select-list.country .filter__select--active");
+    const country = activeCountry?.getAttribute("data-country") || "all";
+
+    let items = [];
+    let maxPages = 1;
+    const isGenreOrCountry = (country !== "all" && COUNTRY_SLUG_MAP[country]) || (genre !== "all" && GENRE_SLUG_MAP[genre]);
+
+    function getTotalPages(resp) {
+      const p1 = resp?.data?.paginate;
+      if (p1?.total_page) return p1.total_page;
+      if (p1?.total_items) return Math.ceil(p1.total_items / 18);
+      const p2 = resp?.paginate;
+      if (p2?.total_page) return p2.total_page;
+      if (p2?.total_items) return Math.ceil(p2.total_items / 18);
+      if (resp?.data?.totalPages) return resp.data.totalPages;
+      if (resp?.data?.totalItems) return Math.ceil(resp.data.totalItems / 18);
+      if (resp?.totalPages) return resp.totalPages;
+      if (resp?.totalItems) return Math.ceil(resp.totalItems / 18);
+      return null;
     }
+    function estimateMaxPages(resp, limit) {
+      const apiPages = getTotalPages(resp);
+      if (apiPages !== null) return apiPages;
+      const itms = resp?.data?.items || resp?.items || [];
+      if (itms.length === 0) return currentPage;
+      if (itms.length >= limit) return 10;
+      return currentPage;
+    }
+
+    if (country !== "all" && COUNTRY_SLUG_MAP[country]) {
+      const countrySlug = COUNTRY_SLUG_MAP[country];
+      const res = await fetch(`${KKPHIM_API}/v1/api/quoc-gia/${countrySlug}?page=${currentPage}&limit=18`);
+      const data = await res.json();
+      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: i.type === "single" ? "movie" : "tv" }));
+      maxPages = estimateMaxPages(data, 18);
+    } else if (genre !== "all" && GENRE_SLUG_MAP[genre]) {
+      const genreSlug = GENRE_SLUG_MAP[genre];
+      const res = await fetch(`${KKPHIM_API}/v1/api/the-loai/${genreSlug}?page=${currentPage}&limit=18`);
+      const data = await res.json();
+      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: i.type === "single" ? "movie" : "tv" }));
+      maxPages = estimateMaxPages(data, 18);
+    } else if (type === "all") {
+      const [movieRes, tvRes] = await Promise.all([
+        fetch(`${KKPHIM_API}/v1/api/danh-sach/phim-le?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`),
+        fetch(`${KKPHIM_API}/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`),
+      ]);
+      const movieData = await movieRes.json();
+      const tvData = await tvRes.json();
+      const movieItems = (movieData?.data?.items || []).slice(0, 10);
+      const tvItems = (tvData?.data?.items || []).slice(0, 10);
+      const combined = [];
+      for (let i = 0; i < 10; i++) {
+        if (movieItems[i]) combined.push({ ...movieItems[i], _media_type: "movie" });
+        if (tvItems[i]) combined.push({ ...tvItems[i], _media_type: "tv" });
+      }
+      items = combined;
+      maxPages = Math.max(
+        estimateMaxPages(movieData, 10),
+        estimateMaxPages(tvData, 10)
+      );
+    } else {
+      const slug = getTypeSlug(type);
+      const res = await fetch(`${KKPHIM_API}/v1/api/danh-sach/${slug}?page=${currentPage}&limit=18&sort_field=${sort.field}&sort_type=${sort.dir}`);
+      const data = await res.json();
+      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: type === "tv" ? "tv" : "movie" }));
+      maxPages = estimateMaxPages(data, 18);
+    }
+
+    if (isGenreOrCountry && arrange !== "new") {
+      items.sort((a, b) => {
+        let va, vb;
+        if (sort.field === "rating") {
+          va = parseFloat(a.tmdb?.vote_average ?? a.tmdb?.vote_average ?? 0);
+          vb = parseFloat(b.tmdb?.vote_average ?? b.tmdb?.vote_average ?? 0);
+        } else {
+          va = parseInt(a[sort.field]) || 0;
+          vb = parseInt(b[sort.field]) || 0;
+        }
+        return sort.dir === "asc" ? va - vb : vb - va;
+      });
+    }
+
+    totalPages = Math.min(maxPages, 10);
+    updatePageNumber();
+    displayMovies(items);
   } catch (error) {
     console.log("Lỗi render:", error);
   }
 }
 
-// Render one type, either movie or TV show
-async function renderOneType() {
-  try {
-    const apiUrl = createApiUrl(currentMovieType, currentPage);
-
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    const movieList = data.results;
-    totalPages = Math.min(data.total_pages, 100);
-    updatePageNumber();
-    displayMovies(movieList);
-  } catch (error) {
-    console.log("Lỗi:", error);
-    throw error;
-  }
-}
-
-// Render both movies and TV shows
-async function renderBothMovieAndTV() {
-  try {
-    const movieApiUrl = createApiUrl("movie", currentPage);
-    const tvApiUrl = createApiUrl("tv", currentPage);
-
-    const [movieResponse, tvResponse] = await Promise.all([
-      fetch(movieApiUrl),
-      fetch(tvApiUrl),
-    ]);
-
-    const movieData = await movieResponse.json();
-    const tvData = await tvResponse.json();
-
-    // Take the first 10 movies of each type and shuffle them using the Fisher-Yates algorithm
-    const movie10 = movieData.results.slice(0, 10);
-    const tv10 = tvData.results.slice(0, 10);
-    let mergeAll = [...movie10, ...tv10];
-
-    // If there is only one type, use all results of that type
-    if (movie10.length !== 0 && tv10.length == 0) {
-      mergeAll = movieData.results;
-    } else if (movie10.length == 0 && tv10.length !== 0) {
-      mergeAll = tvData.results;
-    } else {
-      mergeAll = [];
-    }
-
-    for (let i = 0; i < 10; i++) {
-      if (movie10[i]) mergeAll.push(movie10[i]);
-      if (tv10[i]) mergeAll.push(tv10[i]);
-    }
-
-    const maxPages = Math.max(movieData.total_pages, tvData.total_pages);
-    totalPages = Math.min(maxPages, 100);
-
-    updatePageNumber();
-    displayMovies(mergeAll);
-  } catch (error) {
-    console.log("Lỗi:", error);
-    throw error;
-  }
-}
-
-// Create API according to user-selected filters
-function createApiUrl(type, page) {
-  let url = `${BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&language=${LANGUAGE}&page=${page}`;
-
-  if (currentGenre.length > 0) {
-    url += `&with_genres=${currentGenre.join(",")}`;
-  }
-
-  if (currentCountry) {
-    url += `&with_origin_country=${currentCountry}`;
-  }
-
-  if (currentArrange === "new") {
-    if (type === "movie") {
-      url += "&sort_by=release_date.desc";
-    } else {
-      url += "&sort_by=first_air_date.desc";
-    }
-  } else if (currentArrange === "imdb") {
-    url += "&sort_by=vote_average.desc&vote_count.gte=100";
-  } else if (currentArrange === "popular") {
-    url += "&sort_by=popularity.desc";
-  }
-
-  return url;
-}
-
-// Movie-card-render
 function displayMovies(movieList) {
-  const paginationElement = document.querySelector(".content__pagination");
+  const paginationEl = document.querySelector(".content__pagination");
 
-  // Check if there are no results
   if (!movieList || movieList.length === 0) {
-    movieContainer.innerHTML = `
+    DOM.movieContainer.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #aaa;">
         <div style="font-size: 20px; margin-bottom: 8px;">Không có kết quả</div>
       </div>
     `;
-    // Hide pagination
-    if (paginationElement) {
-      paginationElement.style.display = "none";
-    }
+    if (paginationEl) paginationEl.style.display = "none";
     return;
   }
 
-  // Show pagination if there are results
-  if (paginationElement) {
-    paginationElement.style.display = "flex";
-  }
+  if (paginationEl) paginationEl.style.display = "flex";
 
   let html = "";
 
-  for (let i = 0; i < movieList.length; i++) {
-    const movie = movieList[i];
-
-    // Determine if it's a movie or a TV show
-    const isMovie = movie.title !== undefined;
-    const movieId = movie.id;
-    const movieName = isMovie
-      ? movie.title || movie.original_title
-      : movie.name || movie.original_name;
-    const originalName = isMovie ? movie.original_title : movie.original_name;
-
-    // Handle poster: Use placeholder if not available
-    const posterPath = movie.poster_path
-      ? IMAGE_URL + movie.poster_path
-      : PLACEHOLDER_IMAGE;
-
-    // Choose the appropriate template
+  for (const movie of movieList) {
+    const isMovie = movie._media_type === "movie";
     const template = isMovie ? movieCardTemplate : tvShowCardTemplate;
+    const poster = movie.poster_url
+      ? (movie.poster_url.startsWith("http") ? movie.poster_url : `${IMG_CDN}/${movie.poster_url}`)
+      : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+    const title = movie.name || movie.origin_name || "Không rõ";
+    const original = movie.origin_name || "";
 
-    // Replace values
     let cardHtml = template
-      .replace(/{{id}}/g, movieId)
-      .replace(/{{poster}}/g, posterPath)
-      .replace(/{{title}}/g, movieName)
-      .replace(/{{original_title}}/g, originalName)
-      .replace(/{{name}}/g, movieName); // Khung cho phim bộ
+      .replace(/{{id}}/g, movie.slug || movie._id)
+      .replace(/{{poster}}/g, poster)
+      .replace(/{{title}}/g, title)
+      .replace(/{{original_title}}/g, original)
+      .replace(/{{name}}/g, title);
 
     html += cardHtml;
   }
 
-  movieContainer.innerHTML = html;
+  DOM.movieContainer.innerHTML = html;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Update page number
 function updatePageNumber() {
-  pageCurrentSpan.textContent = currentPage;
-  pageTotalSpan.textContent = totalPages; // Remove "/" because CSS will add it
+  if (DOM.pageCurrent) DOM.pageCurrent.textContent = currentPage;
+  if (DOM.pageTotal) DOM.pageTotal.textContent = totalPages;
   updatePaginationButtons();
 }
 
-// DOM when the user clicks the "Filter results" button
-filterBtn.addEventListener("click", async () => {
-  // Filter by selected "Country"
-  const selectedCountry = document.querySelector(
-    ".filter__select-list.country .filter__select--active"
-  );
-  const countryCode = selectedCountry.getAttribute("data-country");
-  currentCountry = countryCode === "all" ? "" : countryCode;
+function updatePaginationButtons() {
+  if (DOM.leftPag) DOM.leftPag.classList.toggle("disable", currentPage <= 1);
+  if (DOM.rightPag) DOM.rightPag.classList.toggle("disable", currentPage >= totalPages);
+}
 
-  // Filter by selected "Movie type"
-  const selectedType = document.querySelector(
-    ".filter__select-list.movie-type .filter__select--active"
-  );
-  currentMovieType = selectedType.getAttribute("data-type");
-
-  // Filter by selected "Genre"
-  const selectedGenres = document.querySelectorAll(
-    ".filter__select-list.movie-genre .filter__select--active"
-  );
-  currentGenre = [];
-  selectedGenres.forEach((item) => {
-    const genreId = item.getAttribute("data-genre");
-    if (genreId !== "all") {
-      currentGenre.push(genreId);
-    }
-  });
-
-  // Filter by selected "Arrange"
-  const selectedArrange = document.querySelector(
-    ".filter__select-list.arrange .filter__select--active"
-  );
-  currentArrange = selectedArrange.getAttribute("data-arrange");
-
-  // Reset to page 1
+DOM.filterBtn?.addEventListener("click", async () => {
   currentPage = 1;
-  pageCurrentSpan.textContent = "1";
-
-  // Close filter
-  filterSelect.classList.add("hidden");
-  faFilter.classList.remove("fa-filter-active");
-
+  if (DOM.pageCurrent) DOM.pageCurrent.textContent = "1";
+  DOM.filterSelect?.classList.add("hidden");
+  DOM.faFilter?.classList.remove("fa-filter-active");
   await render();
 });
 
-// Check if the left and right buttons are clickable
-function updatePaginationButtons() {
-  if (currentPage <= 1) {
-    leftPag.classList.add("disable");
-  } else {
-    leftPag.classList.remove("disable");
-  }
-
-  if (currentPage >= totalPages) {
-    rightPag.classList.add("disable");
-  } else {
-    rightPag.classList.remove("disable");
-  }
-}
-
-// Click the button to go to the next page
-rightPag.addEventListener("click", async () => {
+DOM.rightPag?.addEventListener("click", async () => {
   if (currentPage < totalPages) {
     currentPage++;
-    pageCurrentSpan.textContent = currentPage;
+    if (DOM.pageCurrent) DOM.pageCurrent.textContent = currentPage;
     await render();
   }
 });
 
-// Click the button to go to the previous page
-leftPag.addEventListener("click", async () => {
+DOM.leftPag?.addEventListener("click", async () => {
   if (currentPage > 1) {
     currentPage--;
-    pageCurrentSpan.textContent = currentPage;
+    if (DOM.pageCurrent) DOM.pageCurrent.textContent = currentPage;
     await render();
   }
 });
 
-// When the language is changed from Translate.js
-window.addEventListener("languagechange", (e) => {
-  LANGUAGE = getLang(); // update TMDB API language
-  currentPage = 1; // reset to page 1
+window.addEventListener("languagechange", () => {
+  currentPage = 1;
   render();
 });

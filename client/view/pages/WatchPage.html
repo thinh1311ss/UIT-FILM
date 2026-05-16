@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xem phim</title>
+  <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg" />
+  <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="../../vendor/css/boxicons.min.css" />
+  <link rel="stylesheet" href="../../Style/HeaderAndFooter.css" />
+  <link rel="stylesheet" href="../../Style/WatchPage.css" />
+  <link rel="stylesheet" href="../../Style/SearchBar.css" />
+  <script src="../../vendor/js/hls.min.js"></script>
+</head>
+<body>
+  <div class="watch-page">
+    <!-- start header -->
+    <div id="header"></div>
+
+    <script type="module">
+      import { headerjs } from "../../js/Header.js";
+      import { searchBar } from "../../js/SearchBar.js";
+
+      fetch("../components/Header.html")
+        .then((res) => res.text())
+        .then((html) => {
+          document.getElementById("header").innerHTML = html;
+          headerjs();
+          return fetch("../components/SearchBar.html");
+        })
+        .then((res) => res.text())
+        .then((searchHTML) => {
+          document.querySelector(".search-box").innerHTML = searchHTML;
+          searchBar();
+        })
+        .catch((error) => console.error("Fetch header/search failed:", error));
+    </script>
+
+    <!-- end header -->
+
+    <main class="watch-main">
+      <!-- Video Player -->
+      <div class="video-wrapper" id="player-container">
+        <div id="player-loading" style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">
+          <i class="fas fa-spinner fa-spin fa-2x"></i>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="watch-info">
+        <h1 class="watch-info__title" id="movie-title">Đang tải...</h1>
+        <span class="watch-info__episode" id="episode-label"></span>
+        <span class="watch-info__quality" id="quality-label"></span>
+      </div>
+
+      <!-- Navigation -->
+      <div class="watch-nav">
+        <a id="detail-link" href="#"><i class="fas fa-arrow-left"></i> Chi tiết</a>
+      </div>
+
+      <!-- Episode List -->
+      <div class="watch-episodes">
+        <h3><i class="fas fa-list"></i> Danh sách tập</h3>
+        <div class="server-tabs" id="server-tabs"></div>
+        <div class="episode-grid" id="episode-grid"></div>
+      </div>
+
+      <!-- Related Movies -->
+      <div class="watch-related">
+        <h3><i class="fas fa-film"></i> Phim liên quan</h3>
+        <div id="related-movies" class="watch-related__grid"></div>
+      </div>
+    </main>
+
+    <!-- start footer -->
+    <div id="footer"></div>
+
+    <script type="module">
+      fetch("../components/Footer.html")
+        .then((res) => res.text())
+        .then((html) => {
+          document.getElementById("footer").innerHTML = html;
+        })
+        .catch((error) => {
+          console.error("Fetch footer failed:", error);
+        });
+    </script>
+    <!-- end footer -->
+  </div>
+
+  <script type="module" src="../../js/WatchPage.js"></script>
+</body>
+</html>

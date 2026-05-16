@@ -1,9 +1,9 @@
 :root {
   --bg: #191b24;
   --panel: #202331;
-  --yellow: #fecf59;
-  --yellow2: #fff1cc;
-  --tag: #ffd875;
+  --purple: #A248BD;
+  --purple-light: #c084d4;
+  --tag: #A248BD;
 }
 * {
   box-sizing: border-box;
@@ -169,16 +169,16 @@ body {
   color: #fff;
 }
 .badge.grad {
-  background: linear-gradient(222deg, #ffd875 0%, #fff 100%);
+  background: linear-gradient(222deg, #A248BD 0%, #c084d4 100%);
   border: none;
 }
 .badge.outline-yellow {
-  border: 1px solid rgba(255, 216, 117, 0.6);
+  border: 1px solid rgba(162, 72, 189, 0.6);
   background: transparent;
-  color: #ffd875;
+  color: #A248BD;
 }
 .badge .imdb {
-  color: #ffd875;
+  color: #A248BD;
   font-size: 11px;
   font-weight: 700;
   margin-right: 4px;
@@ -202,7 +202,7 @@ body {
   overflow: visible;
 }
 .desc-toggle {
-  color: var(--yellow);
+  color: var(--purple);
   font-weight: 600;
   cursor: pointer;
   display: inline-block;
@@ -211,7 +211,7 @@ body {
   transition: color 0.3s;
 }
 .desc-toggle:hover {
-  color: var(--yellow2);
+  color: var(--purple-light);
 }
 @media (min-width: 641px) {
   .desc-toggle {
@@ -226,38 +226,42 @@ body {
 .controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 .play {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   font-weight: 600;
-  font-size: 18px;
-  gap: 16px;
-  padding: 8px 16px;
+  font-size: 16px;
+  gap: 8px;
+  padding: 10px 20px;
   border-radius: 32px;
-  background-color: #fecf59;
   background: linear-gradient(
-    39deg,
-    rgba(254, 207, 89, 1),
-    rgba(255, 241, 204, 1)
+    135deg,
+    rgba(162, 72, 189, 1),
+    rgba(123, 47, 163, 1)
   );
   cursor: pointer;
   transition: all 0.3s ease;
+  border: none;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
 }
 @media (min-width: 768px) {
   .play {
-    width: 100px;
-    height: 40px;
+    font-size: 18px;
+    padding: 12px 24px;
+    gap: 12px;
   }
 }
 .play:hover {
-  background: linear-gradient(39deg, #ffd84d, #ffe9a8);
-  border-color: #fff4c2;
+  background: linear-gradient(135deg, #b85fd0, #9040b8);
   transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(254, 207, 89, 0.5);
+  box-shadow: 0 4px 18px rgba(162, 72, 189, 0.4);
 }
 .actions {
   display: flex;
@@ -350,7 +354,7 @@ body {
   transition: opacity 0.2s, border-color 0.2s, width 0.2s, height 0.2s;
 }
 .thumb.active {
-  border-color: #fff;
+  border-color: #A248BD;
   width: 75px;
   height: 45px;
   opacity: 1;
@@ -404,8 +408,12 @@ body {
     font-size: 15px;
   }
   .play {
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 13px;
+    padding: 6px 14px;
+    gap: 6px;
+  }
+  .controls {
+    gap: 8px;
   }
   .thumbs {
     bottom: 10px;
@@ -415,6 +423,6 @@ body {
     height: 28px;
   }
   .thumb.active {
-    width: 58;
+    width: 58px;
   }
 }

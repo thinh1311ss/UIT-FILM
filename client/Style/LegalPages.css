@@ -2,7 +2,7 @@
   --color-bg-primary: #191b24;
   --color-text-primary: #ffffff;
   --color-text-secondary: #d3d3d3;
-  --color-text-accent: #ffd875;
+  --color-text-accent: #A248BD;
   --color-text-dark: #000000;
   --color-bg-secondary: #ffffff;
   --color-bg-hover: rgba(170, 170, 170, 1);
@@ -19,6 +19,7 @@ body {
   padding: 0;
   box-sizing: border-box;
   overflow-x: hidden;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 main {

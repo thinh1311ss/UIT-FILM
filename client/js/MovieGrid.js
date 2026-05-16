@@ -1,16 +1,16 @@
-import { TMDB_API_KEY } from "../../config.js";
+import { KKPHIM_API } from "../config.js";
 
+const IMG_CDN = "https://phimimg.com";
 let movieCardTemplate = "";
 let tvCardTemplate = "";
 
-//  Function to get language
-function getLang() {
-  return (
-    localStorage.getItem("language") || document.documentElement.lang || "vi"
-  );
-}
+const GRID_CONFIG = [
+  { id: "movieGridNew", type: "phim-le", label: "Phim lẻ mới" },
+  { id: "movieGridHot", type: "phim-bo", label: "Phim bộ mới" },
+  { id: "movieGridHighRate", type: "phim-le", label: "Phim lẻ đánh giá cao" },
+  { id: "movieGridHotHit", type: "phim-bo", label: "Phim bộ xem nhiều" },
+];
 
-//Load 2 template HTML (Movie & TV)
 Promise.all([
   fetch("../components/MovieCardRender.html").then((r) => r.text()),
   fetch("../components/TvShowCardRender.html").then((r) => r.text()),
@@ -18,42 +18,31 @@ Promise.all([
   .then(([movieHtml, tvHtml]) => {
     movieCardTemplate = movieHtml;
     tvCardTemplate = tvHtml;
-    loadMovieGrids(); // Start rendering when templates are loaded
+    loadMovieGrids();
   })
   .catch((err) => console.error("Không tải được template:", err));
 
-//  createCard()
 function createCard(item, type) {
-  const poster = item.poster_path
-    ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
+  const poster = item.poster_url
+    ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
     : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
 
-  // Handle title according to language
-  const titleDisplay =
-    type === "tv"
-      ? item.name || item.original_name
-      : item.title || item.original_title;
-  const originalTitle =
-    type === "tv" ? item.original_name : item.original_title;
+  const titleDisplay = item.name || item.origin_name;
+  const originalTitle = item.origin_name || "";
 
-  // Choose the corresponding template (movie or tv)
-  const template = type === "tv" ? tvCardTemplate : movieCardTemplate;
+  const isMovie = type === "phim-le";
+  const template = isMovie ? movieCardTemplate : tvCardTemplate;
 
-  // Replace placeholders in the HTML template
   return template
-    .replace(/{{id}}/g, item.id)
+    .replace(/{{id}}/g, item.slug || item._id)
     .replace(/{{poster}}/g, poster)
     .replace(/{{title}}/g, titleDisplay)
     .replace(/{{original_title}}/g, originalTitle);
 }
 
-// Render grid to the interface
-function renderGrid(gridId, items = [], type = "movie") {
+function renderGrid(gridId, items = [], type = "phim-le") {
   const grid = document.getElementById(gridId);
-  if (!grid) {
-    console.warn(`Không tìm thấy grid: #${gridId}`);
-    return;
-  }
+  if (!grid) return;
 
   grid.innerHTML = "";
 
@@ -62,7 +51,6 @@ function renderGrid(gridId, items = [], type = "movie") {
     return;
   }
 
-  // Show only 12 first items
   const limitedItems = items.slice(0, 12);
 
   limitedItems.forEach((item) => {
@@ -71,55 +59,37 @@ function renderGrid(gridId, items = [], type = "movie") {
   });
 }
 
-//Fetch data from TMDB
-async function fetchTMDB(endpoint) {
+async function fetchList(endpoint) {
   try {
-    //  Get dynamic language
-    const lang = getLang();
-    const tmdbLang = lang === "vi" ? "vi-VN" : "en-US";
-
-    const res = await fetch(
-      `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&language=${tmdbLang}&page=1`
-    );
+    const res = await fetch(`${KKPHIM_API}/v1/api/danh-sach/${endpoint}&limit=12`);
     const data = await res.json();
-
-    if (!data.results) {
-      console.warn("Không có dữ liệu trả về từ TMDB:", endpoint);
-      return [];
-    }
-
-    return data.results;
+    return data?.data?.items || [];
   } catch (err) {
-    console.error("Lỗi khi fetch TMDB:", err);
+    console.error("Lỗi khi fetch KKPHIM:", err);
     return [];
   }
 }
 
-//Load all movie/TV grids
 async function loadMovieGrids() {
   try {
-    const [newMovies, trendingSeries, highRated, popularTV] = await Promise.all(
-      [
-        fetchTMDB("movie/now_playing"), // New movies in theaters
-        fetchTMDB("trending/tv/week"), // Trending TV series
-        fetchTMDB("movie/top_rated"), // Highly rated movies
-        fetchTMDB("tv/popular"), // Popular TV shows
-      ]
-    );
+    const newestParams = "?sort_field=modified.time&sort_type=desc";
+    const ratingParams = "?sort_field=rating&sort_type=desc";
+    const viewParams = "?sort_field=view&sort_type=desc";
 
-    renderGrid("movieGridNew", newMovies, "movie");
-    renderGrid("movieGridHot", trendingSeries, "tv");
-    renderGrid("movieGridHighRate", highRated, "movie");
-    renderGrid("movieGridHotHit", popularTV, "tv");
+    const [phimLe, phimBo, topRated, popularShows] = await Promise.all([
+      fetchList(`phim-le${newestParams}`),
+      fetchList(`phim-bo${newestParams}`),
+      fetchList(`phim-le${ratingParams}`),
+      fetchList(`phim-bo${viewParams}`),
+    ]);
+
+    renderGrid("movieGridNew", phimLe, "phim-le");
+    renderGrid("movieGridHot", phimBo, "phim-bo");
+    renderGrid("movieGridHighRate", topRated, "phim-le");
+    renderGrid("movieGridHotHit", popularShows, "phim-bo");
   } catch (error) {
     console.error("Lỗi khi load grids:", error);
   }
 }
 
-// Listen for language change event
-window.addEventListener("languagechange", () => {
-  loadMovieGrids();
-});
-
-// Export for other modules to use
 export const movieGrid = { renderGrid, createCard, loadMovieGrids };

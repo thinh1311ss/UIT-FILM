@@ -1,4 +1,23 @@
+# Dependencies
+node_modules/
 /server/node_modules
 /client/node_modules
-/.vscode
 
+# Environment variables
+.env
+server/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+npm-debug.log*

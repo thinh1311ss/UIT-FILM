@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="./public/assets/image/TabLogo.svg"/>
+  <title>UIT FILM</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #0f111a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    .logo-wrap img {
+      width: 220px;
+      height: auto;
+    }
+
+    .loader {
+      width: 36px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .loader-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #351CD5, #A248BD);
+      border-radius: 99px;
+      animation: load 1.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes load {
+      0%   { width: 0%; }
+      80%  { width: 95%; }
+      100% { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-wrap">
+    <img src="./public/assets/image/TabLogo.svg" alt="UIT Film Logo" />
+    <div class="loader">
+      <div class="loader-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = './view/pages/HomePage.html';
+    }, 1800);
+  </script>
+</body>
+</html>

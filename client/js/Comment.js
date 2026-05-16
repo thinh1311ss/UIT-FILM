@@ -86,7 +86,7 @@ function createComment(comment) {
     )
     .join("");
 
-  const avatarUrl = "../../../public/assets/image/vn_flag.svg";
+  const avatarUrl = "../../public/assets/image/vn_flag.svg";
 
   const date = new Date(comment.date).toLocaleDateString(
     localStorage.getItem("language") === "vi" ? "vi-VN" : "en-US",
