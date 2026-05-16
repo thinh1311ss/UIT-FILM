@@ -250,21 +250,63 @@ function saveWatchProgress(video, ep) {
 
 async function renderRelatedMovies() {
   const container = document.getElementById("related-movies");
-  if (!container || !movie) return;
+  if (!container || !movie?.category?.length) {
+    if (container) container.innerHTML = "";
+    return;
+  }
 
   try {
-    const firstCat = movie.category?.[0]?.slug;
-    if (!firstCat) { container.innerHTML = ""; return; }
+    const cats = movie.category.map(c => c.slug).filter(Boolean);
+    const isSingle = movie.type === "single";
+    const seen = new Set([slug]);
 
-    const res = await fetch(`${KKPHIM_API}/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=8`);
-    const data = await res.json();
-    const items = (data?.data?.items || []).slice(0, 12);
+    let related = [];
+
+    for (const catSlug of cats) {
+      if (related.length >= 12) break;
+      const res = await fetch(`${KKPHIM_API}/v1/api/the-loai/${catSlug}?limit=18`);
+      const data = await res.json();
+      const items = data?.data?.items || [];
+      for (const item of items) {
+        if (related.length >= 12) break;
+        if (seen.has(item.slug)) continue;
+        seen.add(item.slug);
+        const sameType = isSingle ? item.type === "single" : item.type !== "single";
+        if (sameType) {
+          related.push(item);
+        }
+      }
+    }
 
     container.innerHTML = "";
-    if (!items.length) {
+    if (!related.length) {
       container.innerHTML = "<p style='color:#666;'>Không có phim liên quan.</p>";
       return;
     }
+
+    related.slice(0, 12).forEach((item) => {
+      const poster = item.poster_url
+        ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
+        : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+      const html = `
+        <div class="movie-box">
+          <a class="movie-box__card" href="../pages/DetailPage.html?slug=${item.slug}">
+            <div class="movie-box__poster">
+              <img class="movie-box__poster-img" src="${poster}" alt="${item.name}">
+            </div>
+          </a>
+          <div class="movie-box__info">
+            <h4 class="movie-box__vietnam-title">
+              <a href="../pages/DetailPage.html?slug=${item.slug}">${item.name}</a>
+            </h4>
+          </div>
+        </div>`;
+      container.insertAdjacentHTML("beforeend", html);
+    });
+  } catch (e) {
+    container.innerHTML = "";
+  }
+}
 
     items.forEach((item) => {
       const poster = item.poster_url
