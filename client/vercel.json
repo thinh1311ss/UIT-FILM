@@ -1,5 +1,6 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "devCommand": null
+  "rewrites": [
+    { "source": "/", "destination": "/view/pages/HomePage.html" },
+    { "source": "/(.*)", "destination": "/$1" }
+  ]
 }
