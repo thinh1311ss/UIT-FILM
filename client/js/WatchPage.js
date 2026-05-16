@@ -296,7 +296,6 @@ function updateUrl() {
 }
 
 async function init() {
-  await loadLayout();
   if (!slug) {
     document.getElementById("movie-title").textContent = "Thiếu slug phim";
     return;
