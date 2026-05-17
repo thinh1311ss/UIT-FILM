@@ -58,7 +58,7 @@
   /* ── Dimensions ── */
   --banner-height:         700px;
   --poster-height:         450px;
-  --poster-height-mobile:  220px;
+  --poster-height-mobile:  350px;
   --avatar-size:           40px;
   --tab-min-height:        300px;
   --tab-max-height:        70px;
@@ -110,19 +110,18 @@ html, body {
 .movie-banner {
   position: relative;
   width: 100%;
-  overflow: hidden;
 }
 
 .movie-banner__container {
   width: 100%;
-  height: var(--banner-height);
+  min-height: var(--banner-height);
   background-color: var(--color-black);
 }
 
 .movie-banner__wrap {
   position: relative;
   width: 100%;
-  height: var(--banner-height);
+  min-height: var(--banner-height);
   background-color: var(--color-black);
   overflow: hidden;
 }
@@ -151,7 +150,7 @@ html, body {
 
 .movie-banner__content {
   display: flex;
-  padding: 0 50px;
+  padding: 0 50px 40px;
   gap: var(--spacing-3xl);
   margin-top: 150px;
   justify-content: center;
@@ -514,9 +513,9 @@ html, body {
 
 /* Episode grid */
 .episode-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
 }
 
 .episode-btn {
@@ -529,10 +528,9 @@ html, body {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
-  min-width: 64px;
+  width: 100%;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
 }
 
 .episode-btn:hover {
@@ -842,12 +840,13 @@ html, body {
     align-items: center;
     text-align: center;
     gap: var(--spacing-sm);
-    padding: 0 16px;
+    padding: 0 16px 40px;
   }
 
   .movie-banner__poster img {
     height: var(--poster-height-mobile);
     margin-top: -100px;
+    width: 230px;
   }
 
   .movie-banner__title h3 { font-size: var(--spacing-lg); margin-top: -10px; }
@@ -884,12 +883,15 @@ html, body {
 
 @media only screen and (max-width: 600px) {
   .recommendations-grid { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); }
+  .episode-grid { grid-template-columns: repeat(5, 1fr); }
   .tab-panel { padding: var(--spacing-md); }
   .movie-tabs { padding: var(--spacing-md) var(--spacing-lg); gap: var(--spacing-md); }
   .movie-tabs__item { font-size: var(--font-size-base); padding: var(--spacing-xs) 0; }
 }
 
 @media only screen and (max-width: 544px) {
+  .episode-grid { grid-template-columns: repeat(3, 1fr); }
+
   .actors-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--grid-gap-sm);

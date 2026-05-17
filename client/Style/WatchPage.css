@@ -205,9 +205,9 @@ body {
 
 /* Episode grid */
 .episode-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
 }
 
 .episode-btn {
@@ -220,10 +220,9 @@ body {
   font-size: 13px;
   font-weight: 500;
   transition: all var(--transition);
-  min-width: 64px;
+  width: 100%;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
 }
 
 .episode-btn:hover {
@@ -393,6 +392,16 @@ body {
   .watch-related,
   .watch-cast {
     padding: 14px;
+  }
+
+  .episode-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .episode-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 @media (max-width: 1200px) {
