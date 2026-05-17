@@ -1,7 +1,25 @@
 {
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/", "destination": "/view/pages/HomePage.html" },
+    { "source": "/home", "destination": "/view/pages/HomePage.html" },
+    { "source": "/danh-sach", "destination": "/view/pages/Danhsach.html" },
+    { "source": "/phim", "destination": "/view/pages/DetailPage.html" },
+    { "source": "/xem-phim", "destination": "/view/pages/WatchPage.html" },
+    { "source": "/tim-kiem", "destination": "/view/pages/SearchPage.html" },
+    { "source": "/tai-khoan", "destination": "/view/pages/UserDetail.html" },
+    { "source": "/admin", "destination": "/view/pages/AdminUsers.html" },
+    { "source": "/lien-he", "destination": "/view/pages/Contact.html" },
+    { "source": "/gioi-thieu", "destination": "/view/pages/AboutUs.html" },
+    { "source": "/faq", "destination": "/view/pages/FAQ.html" },
+    { "source": "/dieu-khoan", "destination": "/view/pages/TermsOfService.html" },
+    { "source": "/bao-mat", "destination": "/view/pages/PrivacyPolicy.html" },
+    { "source": "/(.*)", "destination": "/$1" }
+  ],
   "headers": [
     {
-      "source": "/client/vendor/(.*)",
+      "source": "/vendor/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
     },
     {
@@ -9,11 +27,11 @@
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     },
     {
-      "source": "/client/js/(.*)\\.js",
+      "source": "/js/(.*)\\.js",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
     },
     {
-      "source": "/client/Style/(.*)\\.css",
+      "source": "/Style/(.*)\\.css",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
     }
   ]
