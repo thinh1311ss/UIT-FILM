@@ -303,61 +303,126 @@ async function fetchMovies() {
       return;
     }
 
-    const movieDetails = await Promise.all(
-      items.map(async (item) => {
-        try {
-          const detailData = await cachedFetch(`${KKPHIM_API}/phim/${item.slug}`, 10 * 60 * 1000);
-          const movie = detailData.movie;
+    const slugs = items.slice(0, 6);
 
-          let overview = (movie?.content || "").trim();
-          if (!overview) overview = lang === "vi" ? "Không có mô tả." : "No overview available.";
+    // Compute first slide's background URL from list data (no detail API needed)
+    const firstItem = slugs[0];
+    const firstBg = firstItem.thumb_url
+      ? (firstItem.thumb_url.startsWith("http") ? firstItem.thumb_url : `${IMG_CDN}/${firstItem.thumb_url}`)
+      : (firstItem.poster_url
+        ? (firstItem.poster_url.startsWith("http") ? firstItem.poster_url : `${IMG_CDN}/${firstItem.poster_url}`)
+        : FALLBACK_BG);
 
-          const thumbUrl = item.thumb_url
-            ? item.thumb_url.startsWith("http")
-              ? item.thumb_url
-              : `${IMG_CDN}/${item.thumb_url}`
-            : "";
-          const posterUrl = item.poster_url
-            ? item.poster_url.startsWith("http")
-              ? item.poster_url
-              : `${IMG_CDN}/${item.poster_url}`
-            : "";
+    // Preload LCP image immediately — before detail API call
+    const preloadLink = document.createElement("link");
+    preloadLink.rel = "preload";
+    preloadLink.as = "image";
+    preloadLink.fetchPriority = "high";
+    preloadLink.href = firstBg;
+    document.head.appendChild(preloadLink);
 
-          return {
-            id: item.slug,
-            slug: item.slug,
-            title: item.name || item.origin_name,
-            englishTitle: item.origin_name || item.name,
-            backgroundImage: thumbUrl || posterUrl || FALLBACK_BG,
-            thumbnailImage: posterUrl || FALLBACK_POSTER,
-            imdbRating:
-              movie?.tmdb?.vote_average > 0
-                ? movie.tmdb.vote_average.toFixed(1)
-                : "N/A",
-            year: item.year ? String(item.year) : "N/A",
-            duration: item.time || "N/A",
-            genres: item.category?.map((g) => g.name) || [],
-            description: overview,
-          };
-        } catch (err) {
-          console.warn("Error fetching movie", item.slug, err);
-          return null;
-        }
-      })
-    );
+    // Fetch slide 1 detail
+    const firstDetailData = await cachedFetch(`${KKPHIM_API}/phim/${firstItem.slug}`, 10 * 60 * 1000);
+    const firstMovie = firstDetailData.movie;
 
-    movies = movieDetails.filter(Boolean);
+    let overview = (firstMovie?.content || "").trim();
+    if (!overview) overview = lang === "vi" ? "Không có mô tả." : "No overview available.";
 
-    if (movies.length > 0) {
-      console.log(`Loaded ${movies.length} movies successfully`);
-      update();
-      clearInterval(timer);
-      timer = setInterval(next, 5000);
-    } else {
-      console.warn("No valid movies to display");
-    }
+    const tUrl = firstItem.thumb_url
+      ? (firstItem.thumb_url.startsWith("http") ? firstItem.thumb_url : `${IMG_CDN}/${firstItem.thumb_url}`)
+      : "";
+    const pUrl = firstItem.poster_url
+      ? (firstItem.poster_url.startsWith("http") ? firstItem.poster_url : `${IMG_CDN}/${firstItem.poster_url}`)
+      : "";
+
+    const firstMovieData = {
+      id: firstItem.slug,
+      slug: firstItem.slug,
+      title: firstItem.name || firstItem.origin_name,
+      englishTitle: firstItem.origin_name || firstItem.name,
+      backgroundImage: tUrl || pUrl || FALLBACK_BG,
+      thumbnailImage: pUrl || FALLBACK_POSTER,
+      imdbRating: firstMovie?.tmdb?.vote_average > 0 ? firstMovie.tmdb.vote_average.toFixed(1) : "N/A",
+      year: firstItem.year ? String(firstItem.year) : "N/A",
+      duration: firstItem.time || "N/A",
+      genres: firstItem.category?.map((g) => g.name) || [],
+      description: overview,
+    };
+
+    movies = [firstMovieData];
+    index = 0;
+
+    // Clear old slides and render slide 1 immediately
+    if (slidesEl) slidesEl.innerHTML = "";
+    renderSingleSlide(firstMovieData, 0, true);
+    renderContent();
+
+    // Fetch slides 2-6 via requestIdleCallback (deferred)
+    const rIC = window.requestIdleCallback || ((cb) => setTimeout(cb, 300));
+    rIC(async () => {
+      const restResults = await Promise.all(
+        slugs.slice(1).map(async (item) => {
+          try {
+            const detailData = await cachedFetch(`${KKPHIM_API}/phim/${item.slug}`, 10 * 60 * 1000);
+            const movie = detailData.movie;
+            const tUrl2 = item.thumb_url
+              ? (item.thumb_url.startsWith("http") ? item.thumb_url : `${IMG_CDN}/${item.thumb_url}`)
+              : "";
+            const pUrl2 = item.poster_url
+              ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
+              : "";
+            let ov = (movie?.content || "").trim();
+            if (!ov) ov = lang === "vi" ? "Không có mô tả." : "No overview available.";
+            return {
+              id: item.slug,
+              slug: item.slug,
+              title: item.name || item.origin_name,
+              englishTitle: item.origin_name || item.name,
+              backgroundImage: tUrl2 || pUrl2 || FALLBACK_BG,
+              thumbnailImage: pUrl2 || FALLBACK_POSTER,
+              imdbRating: movie?.tmdb?.vote_average > 0 ? movie.tmdb.vote_average.toFixed(1) : "N/A",
+              year: item.year ? String(item.year) : "N/A",
+              duration: item.time || "N/A",
+              genres: item.category?.map((g) => g.name) || [],
+              description: ov,
+            };
+          } catch (err) {
+            console.warn("Error fetching movie", item.slug, err);
+            return null;
+          }
+        })
+      );
+
+      const validRest = restResults.filter(Boolean);
+      movies = [firstMovieData, ...validRest];
+
+      if (validRest.length > 0) {
+        validRest.forEach((m, i) => renderSingleSlide(m, i + 1, false));
+        renderThumbs();
+        clearInterval(timer);
+        timer = setInterval(next, 5000);
+      }
+    });
   } catch (err) {
     console.error("Fetch KKPHIM failed:", err);
+  }
+}
+
+function renderSingleSlide(movieData, slideIndex, isActive) {
+  if (!slidesEl) return;
+  const slide = createSlide(movieData, isActive);
+  if (slideIndex === 0) {
+    const img = slide.querySelector("img.bg");
+    if (img) {
+      img.fetchPriority = "high";
+      img.loading = "eager";
+    }
+  }
+  const existing = slidesEl.children[slideIndex];
+  if (existing) {
+    slidesEl.replaceChild(slide, existing);
+  } else {
+    slidesEl.appendChild(slide);
   }
 }
 

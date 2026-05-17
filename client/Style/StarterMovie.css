@@ -22,6 +22,7 @@ body {
 .hero {
   position: relative;
   width: 100%;
+  min-height: 650px;
   height: 650px;
   background: var(--panel);
   overflow: hidden;
@@ -49,12 +50,16 @@ body {
   position: absolute;
   inset: 0;
   opacity: 0;
+  aspect-ratio: 16 / 9;
+  background: #111;
   transition: opacity 1s ease;
 }
 .slide.active {
   opacity: 1;
 }
 .slide img.bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
