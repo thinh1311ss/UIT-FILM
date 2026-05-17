@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "echo 'No build needed'"
+    "build": "echo 'No minification — skipped'"
   },
   "dependencies": {
     "jwt-decode": "^4.0.0"
