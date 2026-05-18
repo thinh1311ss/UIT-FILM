@@ -103,6 +103,8 @@ const COUNTRY_SLUG_MAP = {
   "a-rap-xe-ut": "a-rap-xe-ut",
 };
 
+const PRIORITY_COUNTRIES = ["au-my", "nhat-ban", "han-quoc", "trung-quoc", "anh", "phap", "thai-lan", "dai-loan", "hong-kong", "an-do", "viet-nam"];
+
 DOM.filterToggle?.addEventListener("click", () => {
   DOM.filterSelect?.classList.toggle("hidden");
   DOM.faFilter?.classList.toggle("fa-filter-active");
@@ -142,8 +144,16 @@ DOM.countryItems?.forEach((item) => {
 });
 
 function getTypeSlug(type) {
-  const map = { all: "all", movie: "phim-le", tv: "phim-bo" };
+  const map = { all: "all", movie: "phim-chieu-rap", tv: "phim-bo", "tv-shows": "tv-shows" };
   return map[type] || "all";
+}
+
+function getMediaTypeLabel(type) {
+  const lang = localStorage.getItem("language") || document.documentElement.lang || "vi";
+  if (type === "movie") return lang === "vi" ? "Phim l\u1ebb" : "Movies";
+  if (type === "tv") return lang === "vi" ? "Phim b\u1ed9" : "Series";
+  if (type === "tvshows") return "TV Shows";
+  return "";
 }
 
 function getSortParams(arrange) {
@@ -159,6 +169,37 @@ function getSortParams(arrange) {
   }
 }
 
+const PRIORITY_SET = new Set(PRIORITY_COUNTRIES);
+
+function sortByCountryPriority(items) {
+  const priority = [];
+  const other = [];
+  for (const item of items) {
+    const countries = item.country;
+    let isPriority = false;
+    if (countries) {
+      for (let i = 0; i < countries.length; i++) {
+        if (PRIORITY_SET.has(countries[i].slug)) {
+          isPriority = true;
+          break;
+        }
+      }
+    }
+    if (isPriority) priority.push(item);
+    else other.push(item);
+  }
+  priority.sort((a, b) => (b.year || 0) - (a.year || 0));
+  other.sort((a, b) => (b.year || 0) - (a.year || 0));
+  return priority.concat(other);
+}
+
+function getMediaTypeFromItem(item) {
+  if (item._media_type) return item._media_type;
+  if (item.type === "single") return "movie";
+  if (item.type === "tvshows") return "tvshows";
+  return "tv";
+}
+
 async function initApp() {
   try {
     const [movieHtml, tvHtml] = await Promise.all([
@@ -168,7 +209,6 @@ async function initApp() {
     movieCardTemplate = movieHtml;
     tvShowCardTemplate = tvHtml;
 
-    // Apply URL query params to filter
     const params = new URLSearchParams(window.location.search);
     const urlType = params.get("type");
     const urlGenre = params.get("genre");
@@ -248,38 +288,47 @@ async function render() {
       return currentPage;
     }
 
+    const FETCH_LIMIT = 18;
+
     if (country !== "all" && COUNTRY_SLUG_MAP[country]) {
       const countrySlug = COUNTRY_SLUG_MAP[country];
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/quoc-gia/${countrySlug}?page=${currentPage}&limit=18`, 5 * 60 * 1000);
-      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: i.type === "single" ? "movie" : "tv" }));
-      maxPages = estimateMaxPages(data, 18);
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/quoc-gia/${countrySlug}?page=${currentPage}&limit=${FETCH_LIMIT}`, 5 * 60 * 1000);
+      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: getMediaTypeFromItem(i) }));
+      maxPages = estimateMaxPages(data, FETCH_LIMIT);
     } else if (genre !== "all" && GENRE_SLUG_MAP[genre]) {
       const genreSlug = GENRE_SLUG_MAP[genre];
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/the-loai/${genreSlug}?page=${currentPage}&limit=18`, 5 * 60 * 1000);
-      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: i.type === "single" ? "movie" : "tv" }));
-      maxPages = estimateMaxPages(data, 18);
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/the-loai/${genreSlug}?page=${currentPage}&limit=${FETCH_LIMIT}`, 5 * 60 * 1000);
+      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: getMediaTypeFromItem(i) }));
+      maxPages = estimateMaxPages(data, FETCH_LIMIT);
     } else if (type === "all") {
-      const [movieData, tvData] = await Promise.all([
-        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-le?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`, 5 * 60 * 1000),
-        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=${sort.field}&sort_type=${sort.dir}`, 5 * 60 * 1000),
+      const [movieData, tvData, tvShowsData] = await Promise.all([
+        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-chieu-rap?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
+        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
+        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/tv-shows?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
       ]);
-      const movieItems = (movieData?.data?.items || []).slice(0, 10);
-      const tvItems = (tvData?.data?.items || []).slice(0, 10);
+      const movieItems = (movieData?.data?.items || []).slice(0, 10).map(i => ({ ...i, _media_type: "movie" }));
+      const tvItems = (tvData?.data?.items || []).slice(0, 10).map(i => ({ ...i, _media_type: "tv" }));
+      const tvShowsItems = (tvShowsData?.data?.items || []).slice(0, 10).map(i => ({ ...i, _media_type: "tvshows" }));
       const combined = [];
       for (let i = 0; i < 10; i++) {
-        if (movieItems[i]) combined.push({ ...movieItems[i], _media_type: "movie" });
-        if (tvItems[i]) combined.push({ ...tvItems[i], _media_type: "tv" });
+        if (movieItems[i]) combined.push(movieItems[i]);
+        if (tvItems[i]) combined.push(tvItems[i]);
+        if (tvShowsItems[i]) combined.push(tvShowsItems[i]);
       }
       items = combined;
       maxPages = Math.max(
         estimateMaxPages(movieData, 10),
-        estimateMaxPages(tvData, 10)
+        estimateMaxPages(tvData, 10),
+        estimateMaxPages(tvShowsData, 10)
       );
     } else {
       const slug = getTypeSlug(type);
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/${slug}?page=${currentPage}&limit=18&sort_field=${sort.field}&sort_type=${sort.dir}`, 5 * 60 * 1000);
-      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: type === "tv" ? "tv" : "movie" }));
-      maxPages = estimateMaxPages(data, 18);
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/${slug}?page=${currentPage}&limit=${FETCH_LIMIT}&sort_field=year&sort_type=desc`, 5 * 60 * 1000);
+      let rawItems = data?.data?.items || [];
+      const mediaType = type === "movie" ? "movie" : type === "tv" ? "tv" : "tvshows";
+      items = rawItems.map(i => ({ ...i, _media_type: mediaType }));
+      items = sortByCountryPriority(items);
+      maxPages = estimateMaxPages(data, FETCH_LIMIT);
     }
 
     if (isGenreOrCountry && arrange !== "new") {
@@ -322,7 +371,8 @@ function displayMovies(movieList) {
   let html = "";
 
   for (const movie of movieList) {
-    const isMovie = movie._media_type === "movie";
+    const mediaType = getMediaTypeFromItem(movie);
+    const isMovie = mediaType === "movie";
     const template = isMovie ? movieCardTemplate : tvShowCardTemplate;
     const poster = movie.poster_url
       ? (movie.poster_url.startsWith("http") ? movie.poster_url : `${IMG_CDN}/${movie.poster_url}`)
@@ -335,7 +385,8 @@ function displayMovies(movieList) {
       .replace(/{{poster}}/g, poster)
       .replace(/{{title}}/g, title)
       .replace(/{{original_title}}/g, original)
-      .replace(/{{name}}/g, title);
+      .replace(/{{name}}/g, title)
+      .replace(/{{media_type_label}}/g, getMediaTypeLabel(mediaType));
 
     html += cardHtml;
   }

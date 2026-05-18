@@ -125,26 +125,9 @@ function renderContent() {
   }
 
   if (descEl) {
-    descEl.classList.remove("expanded");
-    descEl.textContent = m.description;
-
-    const oldToggle = descEl.nextElementSibling;
-    if (oldToggle && oldToggle.classList.contains("desc-toggle")) {
-      oldToggle.remove();
-    }
-
-    if (m.description.length > 200) {
-      const toggleBtn = document.createElement("span");
-      toggleBtn.className = "desc-toggle";
-      toggleBtn.textContent = "Xem thêm";
-
-      toggleBtn.onclick = () => {
-        const expanded = descEl.classList.toggle("expanded");
-        toggleBtn.textContent = expanded ? "Thu gọn" : "Xem thêm";
-      };
-
-      descEl.after(toggleBtn);
-    }
+    const maxLen = 250;
+    const desc = m.description || "";
+    descEl.textContent = desc.length > maxLen ? desc.slice(0, maxLen) + "..." : desc;
   }
 
   updateFavoriteButtonState();
@@ -286,6 +269,22 @@ function showSimpleNotification(message, type = "info") {
   }, 3000);
 }
 
+const PRIORITY_COUNTRIES = ["au-my", "nhat-ban", "han-quoc", "trung-quoc", "anh", "phap", "thai-lan", "dai-loan", "hong-kong", "an-do", "viet-nam"];
+
+function sortByCountryPriority(items) {
+  const priority = [];
+  const other = [];
+  for (const item of items) {
+    const itemCountries = (item.country || []).map(c => c.slug);
+    const isPriority = itemCountries.some(c => PRIORITY_COUNTRIES.includes(c));
+    if (isPriority) priority.push(item);
+    else other.push(item);
+  }
+  priority.sort((a, b) => (b.year || 0) - (a.year || 0));
+  other.sort((a, b) => (b.year || 0) - (a.year || 0));
+  return [...priority, ...other];
+}
+
 // ========== Data Fetching ==========
 async function fetchMovies() {
   try {
@@ -293,17 +292,18 @@ async function fetchMovies() {
     console.log("Fetching movies with language:", lang);
 
     const data = await cachedFetch(
-      `${KKPHIM_API}/v1/api/danh-sach/phim-le?sort_field=view&sort_type=desc&limit=6`,
+      `${KKPHIM_API}/v1/api/danh-sach/phim-chieu-rap?sort_field=year&sort_type=desc&limit=10`,
       10 * 60 * 1000
     );
-    const items = data?.data?.items || [];
+    let items = data?.data?.items || [];
 
     if (!items.length) {
       console.warn("No movies returned from KKPHIM");
       return;
     }
 
-    const slugs = items.slice(0, 6);
+    items = sortByCountryPriority(items);
+    const slugs = items.slice(0, 5);
 
     // Compute first slide's background URL from list data (no detail API needed)
     const firstItem = slugs[0];

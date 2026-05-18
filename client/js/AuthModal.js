@@ -1,6 +1,7 @@
 import { jwtDecode } from "https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/+esm";
 import { API_URL } from "../config.js";
 
+
 // Helper function to get translation
 function t(key) {
   return window.translations?.[key] || key;
@@ -121,6 +122,7 @@ export async function Auth_Modaljs() {
       verifyForm.classList.add("active");
       startResendTimer();
     } else loginForm.classList.add("active");
+
   };
 
   function closeLRFModal() {
