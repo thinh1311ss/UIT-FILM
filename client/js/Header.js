@@ -103,8 +103,9 @@ function createAdminMenu() {
   const separator = document.createElement("hr");
   separator.id = "admin-menu-separator";
 
-  dropdownList.appendChild(separator);
-  dropdownList.appendChild(adminMenuItem);
+  const parent = logoutBtn.parentNode;
+  parent.insertBefore(adminMenuItem, logoutBtn);
+  parent.insertBefore(separator, logoutBtn);
 }
 
 function checkAdminRole() {

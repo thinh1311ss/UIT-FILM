@@ -122,6 +122,14 @@ body {
   opacity: 0.9;
 }
 
+/* Sections toggle */
+.user-detail__section {
+  display: none;
+}
+.user-detail__section--active {
+  display: block;
+}
+
 /* Main Content */
 .user-detail__main {
   flex: 1;

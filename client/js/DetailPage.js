@@ -457,7 +457,7 @@ function initFavoriteButton() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const slug = urlParams.get("slug") || "";
+  const slug = urlParams.get("slug") || urlParams.get("id") || "";
 
   if (!slug) {
     document.querySelector(".movie-banner__title h3").textContent =

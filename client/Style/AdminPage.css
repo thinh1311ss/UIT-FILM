@@ -67,6 +67,7 @@
 body {
     background-color: var(--color-bg-main);
     margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     padding: 0; 
     box-sizing: border-box; 
     overflow-x: hidden; 

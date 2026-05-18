@@ -57,15 +57,9 @@
                         </a>
                     </li>
                     <li class="admin-menu__item">
-                        <a href="../pages/AdminMovies.html" class="admin-menu__link">
-                            <i class="fa-solid fa-film admin-menu__icon"></i>
-                            <span class="admin-menu__text" data-i18n="admin.movies">Movies</span>
-                        </a>
-                    </li>
-                    <li class="admin-menu__item">
-                        <a href="../pages/AdminTVShows.html" class="admin-menu__link">
-                            <i class="fa-solid fa-tv admin-menu__icon"></i>
-                            <span class="admin-menu__text" data-i18n="admin.tvshows">TV Shows</span>
+                        <a href="#" class="admin-menu__link">
+                            <i class="fa-solid fa-comment admin-menu__icon"></i>
+                            <span class="admin-menu__text" data-i18n="admin.comments">Comments</span>
                         </a>
                     </li>
                     <li class="admin-menu__item">
@@ -146,6 +140,35 @@
                     <button class="pagination__arrow pagination__arrow--right">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Comments Content (hidden by default) -->
+        <div class="admin-content" id="admin-comments-content" style="display:none;">
+            <div class="admin-content__wrapper">
+                <div class="admin-content__header">
+                    <h1 class="admin-content__title" data-i18n="admin.comments">Comments</h1>
+                </div>
+
+                <div class="data-table">
+                    <div class="data-table__header">
+                        <h2 class="data-table__title" data-i18n="admin.comments">Comments</h2>
+                    </div>
+                    <table class="data-table__table">
+                        <thead class="data-table__head">
+                            <tr>
+                                <th class="data-table__th" data-i18n="admin.users.table.no">No.</th>
+                                <th class="data-table__th">User</th>
+                                <th class="data-table__th">Film</th>
+                                <th class="data-table__th">Rating</th>
+                                <th class="data-table__th">Content</th>
+                                <th class="data-table__th">Date</th>
+                                <th class="data-table__th"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="admin-comments__body"></tbody>
+                    </table>
                 </div>
             </div>
         </div>

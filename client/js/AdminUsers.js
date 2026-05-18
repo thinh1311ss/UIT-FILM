@@ -6,8 +6,16 @@ export async function AdminUsers_js() {
 
   // Translation function
   const t = (key) => {
-    const translations = window.translations || {};
-    return translations[key] || key;
+    if (window.translations?.[key]) return window.translations[key];
+    const lang = localStorage.getItem("language") || "vi";
+    const fb = {
+      "comment.loginPrompt": { vi: "Vui lòng đăng nhập để bình luận", en: "Please login to comment" },
+      "comment.deleteConfirm": { vi: "Xóa bình luận này?", en: "Delete this comment?" },
+      "comment.deleteError": { vi: "Không thể xóa bình luận", en: "Cannot delete comment" },
+      "comment.submitError": { vi: "Không thể gửi bình luận", en: "Cannot submit comment" },
+      "comment.noReviews": { vi: "Chưa có đánh giá nào. Hãy là người đầu tiên!", en: "No reviews yet. Be the first!" },
+    };
+    return fb[key]?.[lang] || fb[key]?.vi || key;
   };
 
   const modalUser = document.querySelector(".modal--user");
@@ -706,6 +714,123 @@ export async function AdminUsers_js() {
         : t("admin.users.modal.create");
     }
   });
+
+  // ── Admin Comments Tab ──────────────────────────────────────────
+  const adminLinks = document.querySelectorAll(".admin-menu__link");
+  const userContent = document.querySelector(".main > .admin-content");
+  const commentContent = document.getElementById("admin-comments-content");
+  const commentBody = document.querySelector(".admin-comments__body");
+
+  function switchAdminTab(type) {
+    adminLinks.forEach((l) => l.classList.remove("admin-menu__link--active"));
+    if (type === "users") {
+      adminLinks[0].classList.add("admin-menu__link--active");
+      if (userContent) userContent.style.display = "";
+      if (commentContent) commentContent.style.display = "none";
+    } else if (type === "comments") {
+      adminLinks[1].classList.add("admin-menu__link--active");
+      if (userContent) userContent.style.display = "none";
+      if (commentContent) commentContent.style.display = "";
+      loadAdminComments();
+    }
+  }
+
+  if (adminLinks[1]) {
+    adminLinks[1].addEventListener("click", (e) => {
+      e.preventDefault();
+      switchAdminTab("comments");
+    });
+  }
+  if (adminLinks[0]) {
+    adminLinks[0].addEventListener("click", (e) => {
+      e.preventDefault();
+      switchAdminTab("users");
+    });
+  }
+
+  async function loadAdminComments() {
+    if (!commentBody) return;
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`${API_URL}/api/comments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load comments");
+      const data = await res.json();
+      const comments = data.comments || [];
+      const lang = localStorage.getItem("language") === "vi" ? "vi-VN" : "en-US";
+
+      commentBody.innerHTML = "";
+      if (comments.length === 0) {
+        commentBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#717182;">${t("comment.noReviews")}</td></tr>`;
+        return;
+      }
+
+      comments.forEach((c, i) => {
+        const date = c.createdAt
+          ? new Date(c.createdAt).toLocaleDateString(lang, {
+              day: "2-digit", month: "2-digit", year: "numeric",
+              hour: "2-digit", minute: "2-digit",
+            })
+          : "";
+        const stars =
+          c.rating && c.rating > 0
+            ? Array(5)
+                .fill(0)
+                .map((_, si) =>
+                  si < c.rating
+                    ? '<i class="fas fa-star" style="color:#ffd875;font-size:12px"></i>'
+                    : '<i class="fas fa-star" style="color:#555;font-size:12px"></i>'
+                )
+                .join("")
+            : "-";
+        const userName = c.userName || c.userId?.userName || "?";
+        const filmTitle = c.filmTitle || c.filmId || "?";
+        const content = c.content || "";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="data-table__th">${i + 1}</td>
+          <td class="data-table__th">${userName}</td>
+          <td class="data-table__th" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${filmTitle}</td>
+          <td class="data-table__th">${stars}</td>
+          <td class="data-table__th" style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${content}</td>
+          <td class="data-table__th" style="white-space:nowrap;">${date}</td>
+          <td class="data-table__th">
+            <button class="data-table__btn data-table__btn--delete admin-comment-del" data-id="${c._id}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        commentBody.appendChild(tr);
+      });
+
+      commentBody.querySelectorAll(".admin-comment-del").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          if (!confirm(t("comment.deleteConfirm"))) return;
+          try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`${API_URL}/api/comments/${btn.dataset.id}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+              loadAdminComments();
+            } else {
+              alert(t("comment.deleteError"));
+            }
+          } catch {
+            alert(t("comment.deleteError"));
+          }
+        });
+      });
+    } catch (err) {
+      console.error("Load admin comments error:", err);
+      if (commentBody) {
+        commentBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#c62828;">${t("comment.submitError")}</td></tr>`;
+      }
+    }
+  }
 
   // Initial render
   renderUsers();

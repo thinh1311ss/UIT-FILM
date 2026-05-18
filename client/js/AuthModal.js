@@ -18,6 +18,7 @@ export async function Auth_Modaljs() {
   const resetForm = document.querySelector(".form-wrapper.reset");
   const verifyForm = document.querySelector(".form-wrapper.verify");
 
+  const loginFormEl = loginForm.querySelector("form");
   const registerFormEl = registerForm.querySelector("form");
   const resetFormEl = resetForm.querySelector("form");
   const forgotFormEl = forgotForm.querySelector("form");
@@ -169,7 +170,7 @@ export async function Auth_Modaljs() {
   async function resendOTP() {
     try {
       const res = await fetch(
-        `${API_URL}/api/auth/forgot-password`,
+        `${API_URL}/api/auth/forgotPassword`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -226,6 +227,49 @@ export async function Auth_Modaljs() {
     validatePasswords(newPwdInput, cfNewPwdInput, resetErrorMsg, resetSubmitBtn)
   );
 
+  // Login
+  loginFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!loginFormEl.checkValidity()) return;
+
+    const email = loginFormEl
+      .querySelector('input[name="email"]')
+      .value.trim();
+    const password = loginFormEl
+      .querySelector('input[name="password"]')
+      .value.trim();
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const token = data.accessToken;
+
+        localStorage.setItem("accessToken", token);
+
+        closeLRFModal();
+
+        document.dispatchEvent(new CustomEvent("userLoggedIn"));
+
+        showErrorMessage(loginForm, t("auth.messages.login_success"), true);
+      } else {
+        const text = await res.text();
+        const message =
+          text && text !== "OK"
+            ? text
+            : t("auth.messages.login_failed");
+        showErrorMessage(loginForm, message);
+      }
+    } catch (err) {
+      showErrorMessage(loginForm, t("auth.messages.connection_error"));
+    }
+  });
+
   // Register
   registerFormEl.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -245,7 +289,7 @@ export async function Auth_Modaljs() {
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: userName, email, password }),
+        body: JSON.stringify({ userName, email, password }),
       });
 
       if (res.ok) {
@@ -264,6 +308,74 @@ export async function Auth_Modaljs() {
       showErrorMessage(registerForm, t("auth.messages.connection_error"));
     } finally {
       regSubmitBtn.disabled = false;
+    }
+  });
+
+  // Forgot password
+  forgotFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!forgotFormEl.checkValidity()) return;
+
+    const email = forgotFormEl
+      .querySelector('input[name="email"]')
+      .value.trim();
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/forgotPassword`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        forgotPasswordEmail = email;
+        forgotFormEl.reset();
+        window.openLRFModal("verify");
+        showErrorMessage(
+          verifyForm,
+          t("auth.messages.otp_sent"),
+          true
+        );
+      } else {
+        const text = await res.text();
+        showErrorMessage(forgotForm, text || t("auth.messages.request_failed"));
+      }
+    } catch (err) {
+      showErrorMessage(forgotForm, t("auth.messages.connection_error"));
+    }
+  });
+
+  // Verify OTP
+  verifyFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!verifyFormEl.checkValidity()) return;
+
+    const otp = verifyFormEl
+      .querySelector('input[name="otp"]')
+      .value.trim();
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/verifyOTP`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotPasswordEmail, otp }),
+      });
+
+      if (res.ok) {
+        verifyFormEl.reset();
+        stopResendTimer();
+        window.openLRFModal("reset");
+        showErrorMessage(
+          resetForm,
+          t("auth.messages.verify_success"),
+          true
+        );
+      } else {
+        const text = await res.text();
+        showErrorMessage(verifyForm, text || t("auth.messages.otp_incorrect"));
+      }
+    } catch (err) {
+      showErrorMessage(verifyForm, t("auth.messages.connection_error"));
     }
   });
 

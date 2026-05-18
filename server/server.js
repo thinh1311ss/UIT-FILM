@@ -9,6 +9,7 @@ const connectDB = require("./Service/ConnectDBService");
 const userRoute = require("./Router/UserRoute");
 const userAdminRoute = require("./Router/UserAdminRoute");
 const authRoute = require("./Router/AuthRoute");
+const commentRoute = require("./Router/CommentRoute");
 
 // middleware
 app.use(cors());
@@ -25,6 +26,7 @@ app.use("/auth/admin", userAdminRoute);
 app.use("/api/authUser", userRoute);
 app.use("/api", userRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/comments", commentRoute);
 
 app.use((req, res) => {
   res
