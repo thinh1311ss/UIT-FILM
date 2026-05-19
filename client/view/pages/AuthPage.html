@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UIT FILM</title>
+  <link rel="icon" type="image/svg+xml" href="../../public/assets/image/TabLogo.svg">
+  <link rel="stylesheet" href="../../vendor/css/fontawesome.min.css">
+  <link rel="stylesheet" href="../../Style/AuthPage.css">
+</head>
+<body>
+  <main class="auth-page">
+    <div class="auth-container">
+      <div class="auth-visual">
+        <canvas id="c3d"></canvas>
+      </div>
+      <div class="auth-forms">
+        <a class="back-link" href="javascript:history.back()">
+          <i class="fa-solid fa-arrow-left"></i> Quay l&#7841;i
+        </a>
+
+        <div class="form-wrapper login active">
+          <div class="content_header mb2">
+            <h1 data-i18n="auth.login.title">&#272;&#259;ng nh&#7853;p</h1>
+          </div>
+          <div class="content_body">
+            <p class="mb3">
+              <span data-i18n="auth.login.no_account">N&#7871;u b&#7841;n ch&#432;a c&oacute; t&agrave;i kho&#7843;n,</span>
+              <a class="switch-form" data-i18n="auth.login.register_now"> &#272;&#259;ng k&yacute; ngay</a>
+            </p>
+            <div class="auth-error-message" style="display: none">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <span class="error-text"></span>
+            </div>
+            <form class="v-form">
+              <div class="form-group mb1">
+                <input class="form-control" type="email" name="email" placeholder="Email" data-i18n-placeholder="auth.login.email" required>
+              </div>
+              <div class="form-group mb3 user-password">
+                <input class="form-control" type="password" name="password" placeholder="M&#7853;t kh&#7849;u" data-i18n-placeholder="auth.login.password" required>
+              </div>
+              <div class="form-group action-btn- mt3 mb3">
+                <button type="submit" class="btn btn-primary" data-i18n="auth.login.button">&#272;&#259;ng nh&#7853;p</button>
+              </div>
+              <div class="form-pw-fogot">
+                <a class="switch-form" data-i18n="auth.login.forgot">Qu&ecirc;n m&#7853;t kh&#7849;u?</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="form-wrapper register">
+          <div class="content_header mb2">
+            <h1 data-i18n="auth.register.title">T&#7841;o t&agrave;i kho&#7843;n m&#7899;i</h1>
+          </div>
+          <div class="content_body">
+            <p class="mb3">
+              <span data-i18n="auth.register.have_account">N&#7871;u b&#7841;n &dstrok;&atilde; c&oacute; t&agrave;i kho&#7843;n,</span>
+              <a class="switch-form" data-i18n="auth.register.login_now"> &#272;&#259;ng nh&#7853;p</a>
+            </p>
+            <div class="auth-error-message" style="display: none">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <span class="error-text"></span>
+            </div>
+            <form class="v-form">
+              <div class="form-group mb1">
+                <input class="form-control" type="text" name="name" placeholder="T&ecirc;n hi&#7875;n th&#7883;" data-i18n-placeholder="auth.register.display_name" required>
+              </div>
+              <div class="form-group mb1">
+                <input class="form-control" type="email" name="email" placeholder="Email" data-i18n-placeholder="auth.register.email" required>
+              </div>
+              <div class="form-group mb1">
+                <input class="form-control" type="password" name="password" minlength="6" placeholder="M&#7853;t kh&#7849;u" data-i18n-placeholder="auth.register.password" required>
+              </div>
+              <div class="form-group mb3">
+                <input class="form-control" type="password" name="cf_password" minlength="6" placeholder="Nh&#7853;p l&#7841;i m&#7853;t kh&#7849;u" data-i18n-placeholder="auth.register.confirm_password" required>
+                <small class="non-same-pw" data-i18n="auth.register.not_match">M&#7853;t kh&#7849;u kh&ocirc;ng kh&#7899;p</small>
+              </div>
+              <div class="form-group action-btn- mt3 mb3">
+                <button type="submit" class="btn btn-primary" data-i18n="auth.register.button">&#272;&#259;ng k&yacute;</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="form-wrapper forgot">
+          <div class="content_header mb2">
+            <h1 data-i18n="auth.forgot.title">Qu&ecirc;n m&#7853;t kh&#7849;u</h1>
+          </div>
+          <div class="content_body">
+            <p class="mb3" data-i18n="auth.forgot.description">Nh&#7853;p email &dstrok;&#7875; nh&#7853;n m&atilde; x&aacute;c nh&#7853;n &dstrok;&#7863;t l&#7841;i m&#7853;t kh&#7849;u</p>
+            <div class="auth-error-message" style="display: none">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <span class="error-text"></span>
+            </div>
+            <form class="v-form">
+              <div class="form-group mb1">
+                <input class="form-control" type="email" name="email" placeholder="Email" data-i18n-placeholder="auth.forgot.email" required>
+              </div>
+              <div class="form-group action-btn- mt3 mb3">
+                <button type="submit" class="btn btn-primary" data-i18n="auth.forgot.button">G&#7917;i y&ecirc;u c&#7847;u</button>
+              </div>
+              <div class="form-pw-fogot">
+                <a class="switch-form" data-i18n="auth.forgot.back_to_login">Quay l&#7841;i &dstrok;&#259;ng nh&#7853;p</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="form-wrapper reset">
+          <div class="content_header mb2">
+            <h1 data-i18n="auth.reset.title">T&#7841;o m&#7853;t kh&#7849;u m&#7899;i</h1>
+          </div>
+          <div class="content_body">
+            <p class="mb3" data-i18n="auth.reset.description">Nh&#7853;p m&#7853;t kh&#7849;u m&#7899;i cho t&agrave;i kho&#7843;n c&#7911;a b&#7841;n</p>
+            <div class="auth-error-message" style="display: none">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <span class="error-text"></span>
+            </div>
+            <form class="v-form">
+              <div class="form-group mb1">
+                <input class="form-control" type="password" name="new_password" minlength="6" placeholder="M&#7853;t kh&#7849;u m&#7899;i" data-i18n-placeholder="auth.reset.new_password" required>
+              </div>
+              <div class="form-group mb3">
+                <input class="form-control" type="password" name="cf_new_password" minlength="6" placeholder="Nh&#7853;p l&#7841;i m&#7853;t kh&#7849;u m&#7899;i" data-i18n-placeholder="auth.reset.confirm_password" required>
+                <small class="non-same-pw" data-i18n="auth.reset.not_match">M&#7853;t kh&#7849;u kh&ocirc;ng kh&#7899;p</small>
+              </div>
+              <div class="form-group action-btn- mt3 mb3">
+                <button type="submit" class="btn btn-primary" data-i18n="auth.reset.button">&#272;&#7863;t l&#7841;i m&#7853;t kh&#7849;u</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="form-wrapper verify">
+          <div class="content_header mb2">
+            <h1 data-i18n="auth.verify.title">X&aacute;c nh&#7853;n m&atilde; OTP</h1>
+          </div>
+          <div class="content_body">
+            <p class="mb3" data-i18n="auth.verify.description">Nh&#7853;p m&atilde; x&aacute;c nh&#7853;n &dstrok;&atilde; g&#7917;i &dstrok;&#7871;n email c&#7911;a b&#7841;n</p>
+            <div class="auth-error-message" style="display: none">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <span class="error-text"></span>
+            </div>
+            <form class="v-form">
+              <div class="form-group mb1">
+                <input class="form-control" type="text" name="otp" placeholder="Nh&#7853;p m&atilde; OTP" data-i18n-placeholder="auth.verify.otp" required>
+              </div>
+              <div class="form-group action-btn- mt3 mb3">
+                <button type="submit" class="btn btn-primary" data-i18n="auth.verify.button">X&aacute;c nh&#7853;n</button>
+              </div>
+              <div class="form-pw-fogot">
+                <a class="switch-form" data-i18n="auth.verify.back_to_login">Quay l&#7841;i &dstrok;&#259;ng nh&#7853;p</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script>
+    const canvas = document.getElementById('c3d');
+    if (!canvas) throw new Error('canvas not found');
+
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, canvas.offsetWidth / canvas.offsetHeight, 0.1, 200);
+    camera.position.set(0, 0.5, 9);
+    camera.lookAt(0, 0, 0);
+
+    const amb = new THREE.AmbientLight(0x7755ff, 0.6);
+    scene.add(amb);
+    const key = new THREE.DirectionalLight(0xffffff, 2.5);
+    key.position.set(4, 6, 6);
+    key.castShadow = true;
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xaa44ff, 1.2);
+    fill.position.set(-4, 2, 3);
+    scene.add(fill);
+    const back = new THREE.DirectionalLight(0x4422cc, 0.8);
+    back.position.set(0, -3, -5);
+    scene.add(back);
+    const rim = new THREE.PointLight(0xcc88ff, 2, 15);
+    rim.position.set(-3, 4, -2);
+    scene.add(rim);
+
+    const scale = 1/2100;
+    const cx = 6202, cy = 6476;
+    function toV(x, y){ return [(x-cx)*scale, -(y-cy)*scale]; }
+
+    const pts1 = [
+      [3218.75,3150.67],[157,3150.67],[6280.5,0],[12404,3150.67],[9439.75,3150.67],
+      [7070.31,1575.33],[7070.31,4926.67],[9439.75,3351.33],[12404,3351.33],
+      [6280.5,6502],[3218.75,4926.67],[157,3351.33],[3218.75,3351.33],
+      [5515.06,4926.67],[5515.06,1575.33]
+    ];
+    const pts2 = [
+      [8659.62,12140],[9408.5,11733.7],[10157.4,11327.3],[10157.4,8076.67],
+      [10157.4,6451.33],[12404,6857.67],[12404,3607],[6413,6857.67],[6413,8483],
+      [6413,9295.67],[6413,10108.3],[8659.62,7264],[8659.62,8889.33]
+    ];
+    const pts3 = [
+      [1333.15,4314.67],[0,3607],[0,4346.86],[0,5086.72],[0,6566.44],
+      [0,9525.89],[666.577,10462.4],[1333.15,10816.2],[2963.08,11681.4],
+      [4593,12546.7],[5358.5,12953],[6124,12546.7],[6124,9702.22],[6124,8280],
+      [6124,7568.89],[6124,6857.78],[4593,6045.09],[4593,9295.87],[4593,10921.3],
+      [2976.35,10816.2],[1333.15,9190.85],[1333.15,7565.46]
+    ];
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const matTop = new THREE.MeshStandardMaterial({color: 0x6644ff, metalness:0.7, roughness:0.2, envMapIntensity:1});
+    const matRight = new THREE.MeshStandardMaterial({color: 0xaa44cc, metalness:0.7, roughness:0.2});
+    const matLeft = new THREE.MeshStandardMaterial({color: 0x5533bb, metalness:0.6, roughness:0.25});
+    const matSide = new THREE.MeshStandardMaterial({color: 0x3311aa, metalness:0.8, roughness:0.15});
+
+    function makeShape(pts){
+      const s = new THREE.Shape();
+      const p0 = toV(pts[0][0], pts[0][1]);
+      s.moveTo(p0[0], p0[1]);
+      for(let i=1;i<pts.length;i++){
+        const p = toV(pts[i][0], pts[i][1]);
+        s.lineTo(p[0], p[1]);
+      }
+      s.closePath();
+      return s;
+    }
+
+    function buildMeshes(depth){
+      while(group.children.length) group.remove(group.children[0]);
+      const d = depth * scale * 2100 * 0.0004 * 10;
+      [[pts1,matTop],[pts2,matRight],[pts3,matLeft]].forEach(([pts, mat])=>{
+        const shape = makeShape(pts);
+        const geo = new THREE.ExtrudeGeometry(shape, {
+          depth: d, bevelEnabled: true,
+          bevelThickness: d*0.06, bevelSize: d*0.04, bevelSegments: 4
+        });
+        geo.computeVertexNormals();
+        const mesh = new THREE.Mesh(geo, [mat, matSide]);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.z = -d/2;
+        group.add(mesh);
+      });
+    }
+
+    buildMeshes(50);
+
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(30,30),
+      new THREE.MeshStandardMaterial({color:0x110033, metalness:0.5, roughness:0.8})
+    );
+    plane.rotation.x = -Math.PI/2;
+    plane.position.y = -4.5;
+    plane.receiveShadow = true;
+    scene.add(plane);
+
+    const pGeo = new THREE.BufferGeometry();
+    const pCount = 120;
+    const pPos = new Float32Array(pCount*3);
+    for(let i=0;i<pCount*3;i++) pPos[i] = (Math.random()-0.5)*20;
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+    const pMat = new THREE.PointsMaterial({color:0xaa66ff, size:0.06, transparent:true, opacity:0.7});
+    scene.add(new THREE.Points(pGeo, pMat));
+
+    const AUTO_ROTATE = 0.008;
+
+    let isDrag = false, lastX = 0, lastY = 0;
+    let velY = 0, velX = 0;
+    const DAMPING = 0.97;
+    const ROT_FACTOR = 0.012;
+    const MOMENTUM_FACTOR = 0.006;
+
+    canvas.addEventListener('mousedown', e => {
+      isDrag = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDrag = false;
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDrag) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      group.rotation.y += dx * ROT_FACTOR;
+      group.rotation.x += dy * ROT_FACTOR;
+      velY = dx * MOMENTUM_FACTOR;
+      velX = dy * MOMENTUM_FACTOR;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    canvas.addEventListener('wheel', e => {
+      camera.position.z = Math.max(4, Math.min(16, camera.position.z + e.deltaY * 0.01));
+      e.preventDefault();
+    }, {passive: false});
+
+    // Touch
+    let touchId = null;
+    canvas.addEventListener('touchstart', e => {
+      const t = e.changedTouches[0];
+      touchId = t.identifier;
+      isDrag = true;
+      lastX = t.clientX;
+      lastY = t.clientY;
+    }, {passive: true});
+    window.addEventListener('touchend', e => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === touchId) { isDrag = false; touchId = null; break; }
+      }
+    });
+    window.addEventListener('touchmove', e => {
+      if (!isDrag) return;
+      for (const t of e.changedTouches) {
+        if (t.identifier === touchId) {
+          const dx = t.clientX - lastX, dy = t.clientY - lastY;
+          group.rotation.y += dx * ROT_FACTOR;
+          group.rotation.x += dy * ROT_FACTOR;
+          velY = dx * MOMENTUM_FACTOR;
+          velX = dy * MOMENTUM_FACTOR;
+          lastX = t.clientX;
+          lastY = t.clientY;
+          break;
+        }
+      }
+    }, {passive: true});
+
+    // Space to reset
+    window.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        group.rotation.set(0.15, -0.3, 0);
+        camera.position.set(0, 0.5, 16);
+        velY = 0;
+        velX = 0;
+      }
+    });
+
+    group.rotation.set(0.15, -0.3, 0);
+
+    let t = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      t += 0.008;
+
+      if (!isDrag) {
+        group.rotation.y += velY + AUTO_ROTATE;
+        group.rotation.x += velX;
+        velY *= DAMPING;
+        velX *= DAMPING;
+      }
+
+      group.position.y = Math.sin(t * 0.7) * 0.08;
+      rim.intensity = 1.8 + Math.sin(t * 1.2) * 0.6;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    });
+  </script>
+
+  <script type="module">
+    import { initTranslate } from "../../js/Translate.js";
+    import { authPagejs } from "../../js/AuthPage.js";
+
+    await initTranslate();
+    authPagejs();
+  </script>
+</body>
+</html>

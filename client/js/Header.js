@@ -284,42 +284,14 @@ export async function headerjs() {
 
   const memberBtn = document.querySelector("#btn-member");
   if (memberBtn) {
-    memberBtn.addEventListener("click", async (e) => {
+    memberBtn.addEventListener("click", (e) => {
       e.preventDefault();
 
       const accessToken = localStorage.getItem("accessToken");
       if (accessToken) return;
 
-      let modal = document.querySelector(".modal");
-      if (!modal) {
-        const html = await (
-          await fetch("../components/AuthModal.html")
-        ).text();
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        document.body.appendChild(doc.querySelector(".modal"));
-
-        doc.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
-          const href = link.href;
-          if (!document.querySelector(`link[href="${href}"]`)) {
-            const newLink = Object.assign(document.createElement("link"), {
-              rel: "stylesheet",
-              href: href.startsWith("http")
-                ? href
-                : `/client${href.startsWith("/") ? "" : "/"}${href}`,
-            });
-            document.head.appendChild(newLink);
-          }
-        });
-
-        const { initTranslate } = await import("./Translate.js");
-        await initTranslate();
-
-        const { Auth_Modaljs } = await import("./AuthModal.js");
-        Auth_Modaljs();
-        setTimeout(() => window.openLRFModal("login"), 50);
-      } else {
-        window.openLRFModal("login");
-      }
+      const currentPage = window.location.pathname.split("/").pop();
+      window.location.href = `AuthPage.html?redirect=${encodeURIComponent(currentPage)}`;
     });
   }
 
