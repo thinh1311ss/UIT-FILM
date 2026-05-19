@@ -66,9 +66,14 @@ class FavoritesManager {
 
     try {
       const tokenParts = token.split(".");
-      if (tokenParts.length !== 3) return false;
+      if (tokenParts.length !== 3) {
+        this.clearInvalidToken();
+        return false;
+      }
 
-      const payload = JSON.parse(atob(tokenParts[1]));
+      // JWT uses base64url - convert to standard base64 before atob
+      const base64 = tokenParts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(atob(base64));
       const now = Date.now() / 1000;
 
       if (payload.exp < now) {

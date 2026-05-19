@@ -46,9 +46,18 @@ function translateDOM() {
 }
 
 function getMediaType(item) {
+  if (item.type === "series") return "tv";
+  if (item.type === "single") return "movie";
   const cats = (item.category || []).map(c => c.slug);
   if (cats.includes("phim-bo") || cats.includes("tv-shows")) return "tv";
   return "movie";
+}
+
+function getMediaTypeLabel(type) {
+  const lang = localStorage.getItem("language") || document.documentElement.lang || "vi";
+  if (type === "movie") return lang === "vi" ? "Phim lẻ" : "Movies";
+  if (type === "tv") return lang === "vi" ? "Phim bộ" : "Series";
+  return "";
 }
 
 Promise.all([
@@ -120,7 +129,8 @@ function renderResults() {
       .replace(/{{poster}}/g, poster)
       .replace(/{{title}}/g, title)
       .replace(/{{original_title}}/g, original)
-      .replace(/{{name}}/g, title);
+      .replace(/{{name}}/g, title)
+      .replace(/{{media_type_label}}/g, getMediaTypeLabel(type));
 
     grid.insertAdjacentHTML("beforeend", html);
   });

@@ -41,14 +41,18 @@ function checkAuthStatus() {
   const guest = document.getElementById("user_guest");
   const logged = document.getElementById("main_user");
 
-  if (accessToken && guest && logged) {
+  if (!guest || !logged) {
+    setTimeout(checkAuthStatus, 100);
+    return;
+  }
+  if (accessToken) {
     guest.classList.add("hidden");
     logged.classList.remove("hidden");
     loadUserInfo();
     checkAdminRole();
   } else {
-    if (guest) guest.classList.remove("hidden");
-    if (logged) logged.classList.add("hidden");
+    guest.classList.remove("hidden");
+    logged.classList.add("hidden");
     removeAdminMenu();
   }
 }
@@ -114,8 +118,8 @@ function checkAdminRole() {
   if (accessToken) {
     try {
       const payloadDecoded = jwtDecode(accessToken);
-
-      if (payloadDecoded.role === "Admin") {
+      const role = payloadDecoded.role || "";
+      if (role.toLowerCase() === "admin") {
         createAdminMenu();
       } else {
         removeAdminMenu();
