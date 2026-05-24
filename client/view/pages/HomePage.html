@@ -26,6 +26,7 @@
     <script type="module">
       import { headerjs } from "../../js/Header.js";
       import { searchBar } from "../../js/SearchBar.js";
+      import { translatePage } from "../../js/Translate.js";
 
       fetch("../components/Header.html")
         .then((res) => res.text())
@@ -38,6 +39,7 @@
         .then((searchHTML) => {
           document.querySelector(".search-box").innerHTML = searchHTML;
           searchBar();
+          if (window.translations) translatePage(window.translations);
         })
         .catch((error) => console.error("Fetch header/search failed:", error));
     </script>

@@ -32,10 +32,12 @@ let timer;
 // Add: Function to load translations
 let translations = {};
 
+const LANG_VER = "2";
+
 async function loadTranslations() {
   const lang = getLang();
   try {
-    translations = await cachedFetch(`../../public/locales/${lang}.json`, 30 * 60 * 1000);
+    translations = await cachedFetch(`../../public/locales/${lang}.json?v=${LANG_VER}`, 30 * 60 * 1000);
   } catch (err) {
     console.error("Load translations error:", err);
     translations = {};
@@ -93,12 +95,66 @@ function renderBackground() {
   );
 }
 
+const GENRE_SLUG_MAP = {
+  "hanh-dong": "genre.action",
+  "tinh-cam": "genre.romance",
+  "hai-huoc": "genre.comedy",
+  "kinh-di": "genre.horror",
+  "hoat-hinh": "genre.animation",
+  "gia-dinh": "genre.family",
+  "hinh-su": "genre.crime",
+  "tai-lieu": "genre.documentary",
+  "chinh-kich": "genre.drama",
+  "bi-an": "genre.mystery",
+  "vien-tay": "genre.western",
+  "phieu-luu": "genre.adventure",
+  "gia-tuong": "genre.fantasy",
+  "lich-su": "genre.history",
+  "am-nhac": "genre.music",
+  "khoa-hoc-vien-tuong": "genre.scifi",
+  "vien-tuong": "genre.scifi",
+  "ly-ky": "genre.thriller",
+  "chien-tranh": "genre.war",
+  "tam-ly": "genre.drama",
+  "vo-thuat": "genre.action",
+  "than-thoai": "genre.fantasy",
+  "co-trang": "genre.history",
+  "the-thao": "genre.action",
+  "hoc-duong": "genre.drama",
+};
+
+function translateTime(timeStr) {
+  if (!timeStr) return timeStr;
+  const lang = getLang();
+  if (lang === "vi") return timeStr;
+  return timeStr.replace(/phút\/tập/g, "min/ep").replace(/phút/g, "min").replace(/giờ/g, "h");
+}
+
+async function translateText(text, targetLang) {
+  if (targetLang === "vi" || !text) return text;
+  try {
+    const res = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+    );
+    const data = await res.json();
+    return data?.[0]?.map((s) => s?.[0]).filter(Boolean).join(" ") || text;
+  } catch {
+    return text;
+  }
+}
+
+function translateGenre(genre) {
+  const key = GENRE_SLUG_MAP[genre.slug];
+  return key ? t(key) : genre.name;
+}
+
 function renderContent() {
   const m = movies[index];
   if (!m) return;
 
+  const showLang = getLang();
   if (brandEl) brandEl.alt = m.title;
-  if (enEl) enEl.textContent = m.title || "";
+  if (enEl) enEl.textContent = showLang === "en" && m.englishTitle ? m.englishTitle : (m.title || "");
 
   if (metaEl) {
     metaEl.innerHTML = "";
@@ -110,7 +166,7 @@ function renderContent() {
         "outline-yellow"
       ),
       badge(`<span>${m.year}</span>`),
-      badge(`<span>${m.duration}</span>`),
+      badge(`<span>${translateTime(m.duration)}</span>`),
     ];
     metaEl.append(...metaData);
   }
@@ -119,15 +175,28 @@ function renderContent() {
     genresEl.innerHTML = "";
     m.genres
       .slice(0, 4)
-      .forEach((g) => genresEl.append(badge(`<span>${g}</span>`)));
+      .forEach((g) => {
+        const translated = typeof g === "string" ? g : translateGenre(g);
+        genresEl.append(badge(`<span>${translated}</span>`));
+      });
     if (m.genres.length > 4)
       genresEl.append(badge(`<span>+${m.genres.length - 4}</span>`));
   }
 
   if (descEl) {
     const maxLen = 250;
-    const desc = m.description || "";
+    const desc = (m._translatedDesc || m.description) || "";
     descEl.textContent = desc.length > maxLen ? desc.slice(0, maxLen) + "..." : desc;
+  }
+
+  if (showLang !== "vi" && m.description && !m._translatedDesc) {
+    translateText(m.description, showLang === "en" ? "en" : showLang).then((t) => {
+      m._translatedDesc = t;
+      if (descEl) {
+        const d = t || "";
+        descEl.textContent = d.length > 250 ? d.slice(0, 250) + "..." : d;
+      }
+    });
   }
 
   updateFavoriteButtonState();
@@ -345,7 +414,7 @@ async function fetchMovies() {
       imdbRating: firstMovie?.tmdb?.vote_average > 0 ? firstMovie.tmdb.vote_average.toFixed(1) : "N/A",
       year: firstItem.year ? String(firstItem.year) : "N/A",
       duration: firstItem.time || "N/A",
-      genres: firstItem.category?.map((g) => g.name) || [],
+      genres: firstItem.category?.map((g) => ({ name: g.name, slug: g.slug })) || [],
       description: overview,
     };
 
@@ -383,7 +452,7 @@ async function fetchMovies() {
               imdbRating: movie?.tmdb?.vote_average > 0 ? movie.tmdb.vote_average.toFixed(1) : "N/A",
               year: item.year ? String(item.year) : "N/A",
               duration: item.time || "N/A",
-              genres: item.category?.map((g) => g.name) || [],
+              genres: item.category?.map((g) => ({ name: g.name, slug: g.slug })) || [],
               description: ov,
             };
           } catch (err) {

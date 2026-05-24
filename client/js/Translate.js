@@ -2,6 +2,7 @@
 
 let currentLang = localStorage.getItem("language") || "vi";
 let listenersBound = false;
+const LANG_VER = "2";
 
 // Load language file
 async function loadTranslations(lang) {
@@ -18,7 +19,7 @@ async function loadTranslations(lang) {
         sessionStorage.removeItem(key);
       }
     } catch {}
-    const res = await fetch(`../../public/locales/${lang}.json`);
+    const res = await fetch(`../../public/locales/${lang}.json?v=${LANG_VER}`);
     const data = await res.json();
 
     window.translations = data;
@@ -70,6 +71,8 @@ function updateLanguageLabel(lang) {
 }
 
 // Initialization
+export { translatePage };
+
 export async function initTranslate() {
   document.documentElement.lang = currentLang;
   const translations = await loadTranslations(currentLang);

@@ -4,6 +4,7 @@ import { observeLazyImages } from "../js/lazy-utils.js";
 import { favoritesManager } from "./Favorite.js";
 
 const IMG_CDN = "https://phimimg.com";
+const LANG_VER = "2";
 
 let movie = null;
 let episodes = [];
@@ -11,12 +12,12 @@ let translations = {};
 
 async function loadTranslations(lang) {
   try {
-    translations = await cachedFetch(`../../public/locales/${lang}.json`, 30 * 60 * 1000);
+    translations = await cachedFetch(`../../public/locales/${lang}.json?v=${LANG_VER}`, 30 * 60 * 1000);
   } catch (err) {}
 }
 
 function t(key) {
-  return translations[key] || key;
+  return translations[key] || (window.translations && window.translations[key]) || key;
 }
 
 function currentLang() {
@@ -86,15 +87,59 @@ function renderPoster() {
 }
 
 function renderTitle() {
+  const lang = currentLang();
+  const title = lang === "en" && movie.origin_name ? movie.origin_name : movie.name;
   document.querySelector(".movie-banner__title h3").textContent =
-    movie.name || movie.origin_name;
+    title || movie.name || movie.origin_name;
+}
+
+async function translateText(text, targetLang) {
+  if (targetLang === "vi" || !text) return text;
+  try {
+    const res = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+    );
+    const data = await res.json();
+    return data?.[0]?.map((s) => s?.[0]).filter(Boolean).join(" ") || text;
+  } catch {
+    return text;
+  }
 }
 
 function renderOverview() {
-  document.querySelector(".movie-banner__overview").innerHTML = `
-    <span>${t("detail.intro") || "Giới thiệu"}:</span><br>${
-    movie.content || t("detail.noOverview") || "Chưa có thông tin giới thiệu."
-  }`;
+  const lang = currentLang();
+  const overviewEl = document.querySelector(".movie-banner__overview");
+  const content = movie.content || t("detail.noOverview");
+  overviewEl.innerHTML = `
+    <span>${t("detail.intro")}:</span><br>${content}`;
+  if (lang !== "vi" && movie.content) {
+    translateText(movie.content, lang).then((translated) => {
+      overviewEl.innerHTML = `
+        <span>${t("detail.intro")}:</span><br>${translated}`;
+    });
+  }
+}
+
+function translateTime(timeStr) {
+  if (!timeStr) return timeStr;
+  const lang = currentLang();
+  if (lang === "vi") return timeStr;
+  return timeStr
+    .replace(/phút\/tập/g, "min/ep")
+    .replace(/phút/g, "min")
+    .replace(/giờ/g, "h")
+    .replace(/ tập/g, " eps");
+}
+
+function translateLang(langStr) {
+  if (!langStr) return langStr;
+  const lang = currentLang();
+  if (lang === "vi") return langStr;
+  return langStr
+    .replace(/Lồng Tiếng/g, "Dubbed")
+    .replace(/Thuyết Minh/g, "Narrated")
+    .replace(/Phụ đề/g, "Subtitles")
+    .replace(/Vietsub/g, "Vietsub");
 }
 
 function renderRating() {
@@ -104,9 +149,42 @@ function renderRating() {
   document.querySelector(".movie-banner__rating span").textContent = rating;
 }
 
+const GENRE_SLUG_MAP = {
+  "hanh-dong": "genre.action",
+  "tinh-cam": "genre.romance",
+  "hai-huoc": "genre.comedy",
+  "kinh-di": "genre.horror",
+  "hoat-hinh": "genre.animation",
+  "gia-dinh": "genre.family",
+  "hinh-su": "genre.crime",
+  "tai-lieu": "genre.documentary",
+  "chinh-kich": "genre.drama",
+  "bi-an": "genre.mystery",
+  "vien-tay": "genre.western",
+  "phieu-luu": "genre.adventure",
+  "gia-tuong": "genre.fantasy",
+  "lich-su": "genre.history",
+  "am-nhac": "genre.music",
+  "khoa-hoc-vien-tuong": "genre.scifi",
+  "vien-tuong": "genre.scifi",
+  "ly-ky": "genre.thriller",
+  "chien-tranh": "genre.war",
+  "tam-ly": "genre.drama",
+  "vo-thuat": "genre.action",
+  "than-thoai": "genre.fantasy",
+  "co-trang": "genre.history",
+  "the-thao": "genre.action",
+  "hoc-duong": "genre.drama",
+};
+
+function translateGenre(genre) {
+  const key = GENRE_SLUG_MAP[genre.slug];
+  return key ? t(key) : genre.name;
+}
+
 function renderGenres() {
   document.querySelector(".movie-banner__genres").innerHTML =
-    movie.category?.map((g) => `<span>${g.name}</span>`).join("") ||
+    movie.category?.map((g) => `<span>${translateGenre(g)}</span>`).join("") ||
     `<span>${t("common.unknown")}</span>`;
 }
 
@@ -117,22 +195,45 @@ function renderDirector() {
   `;
 }
 
+const COUNTRY_SLUG_MAP = {
+  "my": "country.us",
+  "nhat-ban": "country.jp",
+  "han-quoc": "country.kr",
+  "trung-quoc": "country.cn",
+  "anh": "country.gb",
+  "phap": "country.fr",
+  "thai-lan": "country.th",
+  "viet-nam": "country.vn",
+  "dai-loan": "country.tw",
+  "hong-kong": "country.hk",
+  "an-do": "country.in",
+  "quoc-gia-khac": "country.other",
+  "au-my": "country.us",
+  "uc": "country.other",
+  "duc": "country.other",
+  "tay-ban-nha": "country.other",
+  "y": "country.other",
+  "nga": "country.other",
+  "mexico": "country.other",
+  "thuy-dien": "country.other",
+  "bi": "country.other",
+};
+
+function translateCountry(slug) {
+  const key = COUNTRY_SLUG_MAP[slug];
+  if (key) return t(key);
+  return slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function renderInfo() {
   const panel = document.querySelector(".tab-panel--info");
   if (!panel) return;
 
-  const flag = movie.country?.[0]?.slug || null;
-  const flagHTML = flag
-    ? `<img src="https://flagcdn.com/48x36/${
-        flag === "nhat-ban" ? "jp" :
-        flag === "trung-quoc" ? "cn" :
-        flag === "han-quoc" ? "kr" :
-        flag === "my" ? "us" :
-        flag === "anh" ? "gb" :
-        flag === "phap" ? "fr" :
-        flag === "quoc-gia-khac" ? "un" : flag
-      }.png" style="width:32px;height:24px;vertical-align:middle;">`
-    : t("common.unknown");
+  const countrySlug = movie.country?.[0]?.slug || null;
+  const countryName = countrySlug ? translateCountry(countrySlug) : t("common.unknown");
 
   function translateStatus(status) {
     const statusMap = {
@@ -148,11 +249,11 @@ function renderInfo() {
     <div class="movie-info"><div class="movie-info__label">${
       t("detail.runtime") || "Thời lượng"
     }:</div><div class="movie-info__value">${
-      movie.time || t("common.unknown")
+      translateTime(movie.time) || t("common.unknown")
     }</div></div>
     <div class="movie-info"><div class="movie-info__label">${
       t("detail.country") || "Quốc gia"
-    }:</div><div class="movie-info__value">${flagHTML}</div></div>
+    }:</div><div class="movie-info__value">${countryName}</div></div>
     <div class="movie-info"><div class="movie-info__label">${
       t("detail.quality") || "Chất lượng"
     }:</div><div class="movie-info__value">${
@@ -161,7 +262,7 @@ function renderInfo() {
     <div class="movie-info"><div class="movie-info__label">${
       t("detail.lang") || "Ngôn ngữ"
     }:</div><div class="movie-info__value">${
-      movie.lang || t("common.updating")
+      translateLang(movie.lang) || t("common.updating")
     }</div></div>
     <div class="movie-info"><div class="movie-info__label">${
       t("detail.status") || "Trạng thái"
@@ -258,8 +359,9 @@ function renderEpisodeList() {
     html += `<div class="episode-grid">`;
 
     server.server_data.forEach((ep, ei) => {
+      const epName = currentLang() === "en" ? ep.name.replace(/Tập/g, "Ep") : ep.name;
       html += `<a href="WatchPage.html?slug=${movie.slug || window.currentMovie.slug}&server=${si}&ep=${ei}" class="episode-btn">
-        ${ep.name}
+        ${epName}
       </a>`;
     });
 
