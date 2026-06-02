@@ -1,7 +1,6 @@
-import { KKPHIM_API } from "../config.js";
+import { KKPHIM_API, imageUrl } from "../config.js";
 import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
-const IMG_CDN = "https://phimimg.com";
 
 let currentPage = 1;
 let currentType = "all";
@@ -374,9 +373,7 @@ function displayMovies(movieList) {
     const mediaType = getMediaTypeFromItem(movie);
     const isMovie = mediaType === "movie";
     const template = isMovie ? movieCardTemplate : tvShowCardTemplate;
-    const poster = movie.poster_url
-      ? (movie.poster_url.startsWith("http") ? movie.poster_url : `${IMG_CDN}/${movie.poster_url}`)
-      : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+    const poster = movie.poster_url ? imageUrl(movie.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
     const title = movie.name || movie.origin_name || "Không rõ";
     const original = movie.origin_name || "";
 

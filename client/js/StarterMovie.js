@@ -1,8 +1,7 @@
-import { KKPHIM_API, API_URL } from "../config.js";
+import { KKPHIM_API, API_URL, imageUrl } from "../config.js";
 import { cachedFetch } from "../js/cache-utils.js";
 import { favoritesManager } from "../js/Favorite.js";
 
-const IMG_CDN = "https://phimimg.com";
 const FALLBACK_POSTER = "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Image";
 const FALLBACK_BG = "https://placehold.co/1920x1080/1a1a2e/0891b2?text=No+Image";
 
@@ -377,9 +376,9 @@ async function fetchMovies() {
     // Compute first slide's background URL from list data (no detail API needed)
     const firstItem = slugs[0];
     const firstBg = firstItem.thumb_url
-      ? (firstItem.thumb_url.startsWith("http") ? firstItem.thumb_url : `${IMG_CDN}/${firstItem.thumb_url}`)
+      ? imageUrl(firstItem.thumb_url)
       : (firstItem.poster_url
-        ? (firstItem.poster_url.startsWith("http") ? firstItem.poster_url : `${IMG_CDN}/${firstItem.poster_url}`)
+        ? imageUrl(firstItem.poster_url)
         : FALLBACK_BG);
 
     // Preload LCP image immediately — before detail API call
@@ -397,12 +396,8 @@ async function fetchMovies() {
     let overview = (firstMovie?.content || "").trim();
     if (!overview) overview = lang === "vi" ? "Không có mô tả." : "No overview available.";
 
-    const tUrl = firstItem.thumb_url
-      ? (firstItem.thumb_url.startsWith("http") ? firstItem.thumb_url : `${IMG_CDN}/${firstItem.thumb_url}`)
-      : "";
-    const pUrl = firstItem.poster_url
-      ? (firstItem.poster_url.startsWith("http") ? firstItem.poster_url : `${IMG_CDN}/${firstItem.poster_url}`)
-      : "";
+    const tUrl = firstItem.thumb_url ? imageUrl(firstItem.thumb_url) : "";
+    const pUrl = firstItem.poster_url ? imageUrl(firstItem.poster_url) : "";
 
     const firstMovieData = {
       id: firstItem.slug,
@@ -434,12 +429,8 @@ async function fetchMovies() {
           try {
             const detailData = await cachedFetch(`${KKPHIM_API}/phim/${item.slug}`, 10 * 60 * 1000);
             const movie = detailData.movie;
-            const tUrl2 = item.thumb_url
-              ? (item.thumb_url.startsWith("http") ? item.thumb_url : `${IMG_CDN}/${item.thumb_url}`)
-              : "";
-            const pUrl2 = item.poster_url
-              ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
-              : "";
+            const tUrl2 = item.thumb_url ? imageUrl(item.thumb_url) : "";
+            const pUrl2 = item.poster_url ? imageUrl(item.poster_url) : "";
             let ov = (movie?.content || "").trim();
             if (!ov) ov = lang === "vi" ? "Không có mô tả." : "No overview available.";
             return {

@@ -1,6 +1,5 @@
-import { KKPHIM_API } from "../config.js";
+import { KKPHIM_API, imageUrl } from "../config.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
-const IMG_CDN = "https://phimimg.com";
 
 const params = new URLSearchParams(window.location.search);
 const slug = params.get("slug");
@@ -268,9 +267,7 @@ async function renderRelatedMovies() {
     }
 
     items.forEach((item) => {
-      const poster = item.poster_url
-        ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
-        : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+      const poster = item.poster_url ? imageUrl(item.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
       const typeLabel = item.type === "single" ? "Phim" : "Series";
       const html = `
         <div class="movie-box">

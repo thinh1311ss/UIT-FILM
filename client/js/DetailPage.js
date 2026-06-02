@@ -1,9 +1,8 @@
-import { KKPHIM_API } from "../config.js";
+import { KKPHIM_API, imageUrl } from "../config.js";
 import { cachedFetch } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
 import { favoritesManager } from "./Favorite.js";
 
-const IMG_CDN = "https://phimimg.com";
 const LANG_VER = "2";
 
 let movie = null;
@@ -56,7 +55,7 @@ async function fetchDetail(slug) {
     };
 
     // Preload poster image before rendering
-    const posterUrl = movie.poster_url || "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
+    const posterUrl = movie.poster_url ? imageUrl(movie.poster_url) : "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
     const preloadLink = document.createElement("link");
     preloadLink.rel = "preload";
     preloadLink.as = "image";
@@ -90,9 +89,7 @@ async function fetchDetail(slug) {
 }
 
 function renderPoster() {
-  const posterUrl = movie.poster_url
-    ? movie.poster_url
-    : "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
+  const posterUrl = movie.poster_url ? imageUrl(movie.poster_url) : "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
   const img = document.querySelector(".movie-banner__poster img");
   img.fetchPriority = "high";
   img.loading = "eager";
@@ -291,7 +288,7 @@ function renderInfo() {
 function renderBackground() {
   const bg = document.querySelector(".movie-banner__background");
   if (bg && movie.poster_url) {
-    bg.style.backgroundImage = `url(${movie.poster_url})`;
+    bg.style.backgroundImage = `url(${imageUrl(movie.poster_url)})`;
     bg.style.backgroundSize = "cover";
     bg.style.backgroundPosition = "center";
   }
@@ -434,9 +431,7 @@ async function loadRecommended(slug) {
     }
 
     items.forEach((item) => {
-      const poster = item.poster_url
-        ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
-        : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+      const poster = item.poster_url ? imageUrl(item.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
 
       const html = `
         <div class="movie-box">

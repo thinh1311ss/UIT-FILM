@@ -1,6 +1,5 @@
-import { KKPHIM_API } from "../config.js";
+import { KKPHIM_API, imageUrl } from "../config.js";
 import { cachedFetch } from "../js/cache-utils.js";
-const IMG_CDN = "https://phimimg.com";
 
 export function searchBar() {
   const input = document.querySelector(".search__input");
@@ -52,7 +51,7 @@ export function searchBar() {
       const card = document.createElement("div");
       card.classList.add("search__result");
 
-      const img = item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`;
+      const img = imageUrl(item.poster_url);
       const title = item.name || "Không rõ";
       const original = item.origin_name || "";
       const year = item.year || "";

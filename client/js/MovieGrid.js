@@ -1,8 +1,7 @@
-import { KKPHIM_API } from "../config.js";
+import { KKPHIM_API, imageUrl } from "../config.js";
 import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
 
-const IMG_CDN = "https://phimimg.com";
 let movieCardTemplate = "";
 let tvCardTemplate = "";
 
@@ -31,9 +30,7 @@ function getCardType(type) {
 }
 
 function createCard(item, type) {
-  const poster = item.poster_url
-    ? (item.poster_url.startsWith("http") ? item.poster_url : `${IMG_CDN}/${item.poster_url}`)
-    : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+  const poster = item.poster_url ? imageUrl(item.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
 
   const titleDisplay = item.name || item.origin_name;
   const originalTitle = item.origin_name || "";
