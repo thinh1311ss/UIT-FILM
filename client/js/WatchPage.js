@@ -1,4 +1,5 @@
 import { KKPHIM_API } from "../config.js";
+import { observeLazyImages } from "../js/lazy-utils.js";
 const IMG_CDN = "https://phimimg.com";
 
 const params = new URLSearchParams(window.location.search);
@@ -278,7 +279,7 @@ async function renderRelatedMovies() {
               <div class="movie-box__info-ep-top"><span>${typeLabel}</span></div>
             </div>
             <div class="movie-box__poster">
-              <img class="movie-box__poster-img" src="${poster}" alt="${item.name}" loading="lazy">
+              <img class="movie-box__poster-img lazy-img" data-src="${poster}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%231a1a2e'/%3E%3C/svg%3E" alt="${item.name}" loading="lazy" fetchpriority="low">
             </div>
           </a>
           <div class="movie-box__info">
@@ -292,6 +293,7 @@ async function renderRelatedMovies() {
         </div>`;
       container.insertAdjacentHTML("beforeend", html);
     });
+    observeLazyImages();
   } catch (e) {
     container.innerHTML = "";
   }

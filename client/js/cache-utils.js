@@ -1,11 +1,29 @@
+const STORE = (() => {
+  try {
+    return typeof localStorage !== 'undefined' ? localStorage : null;
+  } catch { return null; }
+})();
+
+function storeGet(key) {
+  try { return STORE?.getItem(key); } catch { return null; }
+}
+
+function storeSet(key, val) {
+  try { STORE?.setItem(key, val); } catch {}
+}
+
+function storeRemove(key) {
+  try { STORE?.removeItem(key); } catch {}
+}
+
 export async function cachedFetch(url, ttlMs = 5 * 60 * 1000) {
   const key = 'cf_' + url;
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = storeGet(key);
     if (raw) {
       const { data, exp } = JSON.parse(raw);
       if (Date.now() < exp) return data;
-      sessionStorage.removeItem(key);
+      storeRemove(key);
     }
   } catch {}
 
@@ -14,7 +32,7 @@ export async function cachedFetch(url, ttlMs = 5 * 60 * 1000) {
   const data = await res.json();
 
   try {
-    sessionStorage.setItem(key, JSON.stringify({ data, exp: Date.now() + ttlMs }));
+    storeSet(key, JSON.stringify({ data, exp: Date.now() + ttlMs }));
   } catch {}
 
   return data;
@@ -23,11 +41,11 @@ export async function cachedFetch(url, ttlMs = 5 * 60 * 1000) {
 export async function cachedHTML(url) {
   const key = 'html_' + url;
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = storeGet(key);
     if (raw) {
       const { html, exp } = JSON.parse(raw);
       if (Date.now() < exp) return html;
-      sessionStorage.removeItem(key);
+      storeRemove(key);
     }
   } catch {}
 
@@ -35,7 +53,7 @@ export async function cachedHTML(url) {
   const html = await res.text();
 
   try {
-    sessionStorage.setItem(key, JSON.stringify({ html, exp: Date.now() + 30 * 60 * 1000 }));
+    storeSet(key, JSON.stringify({ html, exp: Date.now() + 30 * 60 * 1000 }));
   } catch {}
 
   return html;

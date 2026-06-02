@@ -51,6 +51,15 @@ a {
   object-fit: cover;
 }
 
+.movie-box__poster-img.lazy-img {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.movie-box__poster-img.lazy-img.lazy-loaded {
+  opacity: 1;
+}
+
 /* Info top */
 .movie-box__info-top {
   position: absolute;

@@ -59,7 +59,7 @@ export function searchBar() {
       const type = item.media_type === "movie" ? `Phim lẻ • ${year}` : `Phim bộ • ${year}`;
 
       card.innerHTML = `
-        <img class="search__result-img" src="${img}" alt="${title}">
+        <img class="search__result-img" src="${img}" alt="${title}" loading="lazy" decoding="async" fetchpriority="low">
         <div class="search__result-info">
           <div class="search__result-title">${title}</div>
           ${original && original !== title ? `<div class="search__result-subtitle">${original}</div>` : ""}

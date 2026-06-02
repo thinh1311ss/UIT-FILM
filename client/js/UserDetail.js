@@ -541,6 +541,9 @@ function renderFavorites(favorites) {
           src="${film.posterPath || "/images/default-poster.jpg"}"
           alt="${film.title || film.originalName || t("common.unknown")}"
           class="favorite-card__poster"
+          loading="lazy"
+          decoding="async"
+          fetchpriority="low"
           onerror="this.src='/images/default-poster.jpg'"
         />
         <div class="favorite-card__info-top">

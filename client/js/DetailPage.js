@@ -55,6 +55,15 @@ async function fetchDetail(slug) {
       type: isTV ? "TV" : "Movie",
     };
 
+    // Preload poster image before rendering
+    const posterUrl = movie.poster_url || "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
+    const preloadLink = document.createElement("link");
+    preloadLink.rel = "preload";
+    preloadLink.as = "image";
+    preloadLink.fetchPriority = "high";
+    preloadLink.href = posterUrl;
+    document.head.appendChild(preloadLink);
+
     renderPoster();
     renderTitle();
     renderOverview();
@@ -81,9 +90,13 @@ async function fetchDetail(slug) {
 }
 
 function renderPoster() {
-  document.querySelector(".movie-banner__poster img").src = movie.poster_url
+  const posterUrl = movie.poster_url
     ? movie.poster_url
     : "https://placehold.co/500x750/1a1a2e/0891b2?text=No+Poster";
+  const img = document.querySelector(".movie-banner__poster img");
+  img.fetchPriority = "high";
+  img.loading = "eager";
+  img.src = posterUrl;
 }
 
 function renderTitle() {

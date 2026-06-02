@@ -7,7 +7,7 @@ const _lazyObs = new IntersectionObserver((entries) => {
     img.classList.add('lazy-loaded');
     _lazyObs.unobserve(img);
   });
-}, { rootMargin: '300px 0px', threshold: 0 });
+}, { rootMargin: '200px 0px', threshold: 0 });
 
 export function observeLazyImages() {
   document
@@ -18,4 +18,19 @@ export function observeLazyImages() {
         _lazyObs.observe(img);
       }
     });
+}
+
+export function preloadImage(src) {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.fetchPriority = 'high';
+  link.href = src;
+  document.head.appendChild(link);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = src;
+  });
 }

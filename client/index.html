@@ -67,9 +67,14 @@
   </div>
 
   <script>
-    setTimeout(() => {
+    if (localStorage.getItem('visited')) {
       window.location.href = './view/pages/HomePage.html';
-    }, 1800);
+    } else {
+      localStorage.setItem('visited', '1');
+      setTimeout(() => {
+        window.location.href = './view/pages/HomePage.html';
+      }, 800);
+    }
   </script>
 </body>
 </html>

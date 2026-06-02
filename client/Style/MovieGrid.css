@@ -31,6 +31,8 @@ body {
   max-width: 100%;
   padding: 0 20px;
   margin-bottom: 20px;
+  content-visibility: auto;
+  contain-intrinsic-size: 500px;
 }
 
 .header-grid {
@@ -104,6 +106,15 @@ body {
   height: 100%;
   inset: 0;
   object-fit: cover;
+}
+
+.movie-box__poster-img.lazy-img {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.movie-box__poster-img.lazy-img.lazy-loaded {
+  opacity: 1;
 }
 
 /* Info top */
