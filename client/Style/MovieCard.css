@@ -93,6 +93,7 @@ a {
   cursor: pointer;
   color: #fff;
   font-size: 14px;
+  text-decoration: none;
 }
 
 .movie-box__other-title {
@@ -102,6 +103,7 @@ a {
 
 .movie-box__other-title a {
   color: #aaa;
+  text-decoration: none;
 }
 
 /* Responsive */

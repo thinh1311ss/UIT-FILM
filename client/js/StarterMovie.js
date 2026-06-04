@@ -142,6 +142,13 @@ async function translateText(text, targetLang) {
   }
 }
 
+function decodeHTML(str) {
+  if (!str) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
+}
+
 function translateGenre(genre) {
   const key = GENRE_SLUG_MAP[genre.slug];
   return key ? t(key) : genre.name;
@@ -152,8 +159,8 @@ function renderContent() {
   if (!m) return;
 
   const showLang = getLang();
-  if (brandEl) brandEl.alt = m.title;
-  if (enEl) enEl.textContent = showLang === "en" && m.englishTitle ? m.englishTitle : (m.title || "");
+  if (brandEl) brandEl.alt = decodeHTML(m.title);
+  if (enEl) enEl.textContent = decodeHTML(showLang === "en" && m.englishTitle ? m.englishTitle : (m.title || ""));
 
   if (metaEl) {
     metaEl.innerHTML = "";
@@ -184,7 +191,7 @@ function renderContent() {
 
   if (descEl) {
     const maxLen = 250;
-    const desc = (m._translatedDesc || m.description) || "";
+    const desc = decodeHTML((m._translatedDesc || m.description) || "");
     descEl.textContent = desc.length > maxLen ? desc.slice(0, maxLen) + "..." : desc;
   }
 
@@ -192,7 +199,7 @@ function renderContent() {
     translateText(m.description, showLang === "en" ? "en" : showLang).then((t) => {
       m._translatedDesc = t;
       if (descEl) {
-        const d = t || "";
+        const d = decodeHTML(t || "");
         descEl.textContent = d.length > 250 ? d.slice(0, 250) + "..." : d;
       }
     });
@@ -206,7 +213,7 @@ function renderThumbs() {
   thumbsEl.replaceChildren(
     ...movies.map((m, i) => {
       const b = createEl("button", `thumb${i === index ? " active" : ""}`);
-      b.ariaLabel = m.title;
+      b.ariaLabel = decodeHTML(m.title);
       const img = createEl("img");
       img.src = m.thumbnailImage;
       img.alt = m.title;

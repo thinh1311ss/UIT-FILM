@@ -373,9 +373,10 @@ function displayMovies(movieList) {
     const mediaType = getMediaTypeFromItem(movie);
     const isMovie = mediaType === "movie";
     const template = isMovie ? movieCardTemplate : tvShowCardTemplate;
+    const lang = localStorage.getItem("language") || document.documentElement.lang || "vi";
     const poster = movie.poster_url ? imageUrl(movie.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
-    const title = movie.name || movie.origin_name || "Không rõ";
-    const original = movie.origin_name || "";
+    const title = lang === "en" ? (movie.origin_name || movie.name || "Không rõ") : (movie.name || movie.origin_name || "Không rõ");
+    const original = lang === "en" ? (movie.origin_name || movie.name || "") : (movie.origin_name || "");
 
     let cardHtml = template
       .replace(/{{id}}/g, movie.slug || movie._id)

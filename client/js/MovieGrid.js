@@ -30,10 +30,11 @@ function getCardType(type) {
 }
 
 function createCard(item, type) {
+  const lang = localStorage.getItem("language") || document.documentElement.lang || "vi";
   const poster = item.poster_url ? imageUrl(item.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
 
-  const titleDisplay = item.name || item.origin_name;
-  const originalTitle = item.origin_name || "";
+  const titleDisplay = lang === "en" ? (item.origin_name || item.name) : (item.name || item.origin_name);
+  const originalTitle = lang === "en" ? (item.origin_name || item.name || "") : (item.origin_name || "");
 
   const cardType = getCardType(type);
   const isMovie = cardType === "phim-le";

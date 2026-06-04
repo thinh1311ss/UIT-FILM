@@ -114,12 +114,13 @@ function renderResults() {
   }
 
   allResults.forEach((item) => {
+    const lang = localStorage.getItem("language") || document.documentElement.lang || "vi";
     const type = getMediaType(item);
     const isMovie = type === "movie";
     const template = isMovie ? movieCardTemplate : tvCardTemplate;
     const poster = item.poster_url ? imageUrl(item.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
-    const title = item.name || "Không rõ";
-    const original = item.origin_name || "";
+    const title = lang === "en" ? (item.origin_name || item.name || "Unknown") : (item.name || "Unknown");
+    const original = lang === "en" ? (item.origin_name || item.name || "") : (item.origin_name || "");
 
     const html = template
       .replace(/{{id}}/g, item.slug)
