@@ -29,6 +29,8 @@ const DOM = {
   countryItems: document.querySelectorAll(".filter__select-list.country .filter__select-list-item"),
 };
 
+const DANHSACH_GENRES = new Set(["hoat-hinh"]);
+
 const GENRE_SLUG_MAP = {
   "hanh-dong": "hanh-dong",
   "tinh-cam": "tinh-cam",
@@ -52,7 +54,6 @@ const GENRE_SLUG_MAP = {
   "hoc-duong": "hoc-duong",
   "kinh-dien": "kinh-dien",
   "hoat-hinh": "hoat-hinh",
-  "phim-18": "phim-18",
   "short-drama": "short-drama",
 };
 
@@ -296,7 +297,8 @@ async function render() {
       maxPages = estimateMaxPages(data, FETCH_LIMIT);
     } else if (genre !== "all" && GENRE_SLUG_MAP[genre]) {
       const genreSlug = GENRE_SLUG_MAP[genre];
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/the-loai/${genreSlug}?page=${currentPage}&limit=${FETCH_LIMIT}`, 5 * 60 * 1000);
+      const endpoint = DANHSACH_GENRES.has(genre) ? "danh-sach" : "the-loai";
+      const data = await cachedFetch(`${KKPHIM_API}/v1/api/${endpoint}/${genreSlug}?page=${currentPage}&limit=${FETCH_LIMIT}`, 5 * 60 * 1000);
       items = (data?.data?.items || []).map(i => ({ ...i, _media_type: getMediaTypeFromItem(i) }));
       maxPages = estimateMaxPages(data, FETCH_LIMIT);
     } else if (type === "all") {
