@@ -1,5 +1,13 @@
 import { jwtDecode } from "https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/+esm";
 
+(function () {
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  var s = document.createElement("script");
+  s.defer = true;
+  s.src = "/_vercel/insights/script.js";
+  document.head.appendChild(s);
+})();
+
 function saveLanguagePreference(lang) {
   localStorage.setItem("selectedLanguage", lang);
 }
@@ -168,6 +176,13 @@ export async function headerjs() {
   applyLanguagePreference(languageSwitchers);
 
   menuToggle.addEventListener("click", () => {
+    if (searchNav.classList.contains("toggled")) {
+      searchNav.classList.remove("toggled");
+      searchBox.classList.remove("toggled");
+      logo.classList.remove("hidden");
+      menuToggle.classList.remove("hidden");
+      languageSwitchers.forEach((ls) => ls.classList.remove("hidden"));
+    }
     menuToggle.classList.toggle("toggled");
     searchGroup.classList.toggle("toggled");
   });
@@ -226,6 +241,10 @@ export async function headerjs() {
   });
 
   searchNav.addEventListener("click", () => {
+    if (menuToggle.classList.contains("toggled")) {
+      menuToggle.classList.remove("toggled");
+      searchGroup.classList.remove("toggled");
+    }
     searchNav.classList.toggle("toggled");
     searchBox.classList.toggle("toggled");
     logo.classList.toggle("hidden");
