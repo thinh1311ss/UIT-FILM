@@ -1,7 +1,8 @@
-import { KKPHIM_API, imageUrl } from "../config.js";
+import { imageUrl } from "../config.js";
 import { cachedFetch } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
 import { favoritesManager } from "./Favorite.js";
+import { extractMovie, extractEpisodes, extractItems, apiFetch } from "../js/api-adapter.js";
 
 const LANG_VER = "2";
 
@@ -39,9 +40,9 @@ function translateDOM() {
 
 async function fetchDetail(slug) {
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 30 * 60 * 1000);
-    movie = data.movie;
-    episodes = data.episodes || [];
+    const data = await apiFetch(`/phim/${slug}`, 30 * 60 * 1000);
+    movie = extractMovie(data);
+    episodes = extractEpisodes(data);
 
     const isTV = movie.type !== "single";
 
@@ -416,11 +417,11 @@ async function loadRecommended(slug) {
       return;
     }
 
-    const data = await cachedFetch(
-      `${KKPHIM_API}/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`,
+    const data = await apiFetch(
+      `/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`,
       5 * 60 * 1000
     );
-    const items = (data?.data?.items || []).slice(0, 12);
+    const items = extractItems(data).slice(0, 12);
 
     container.innerHTML = "";
     if (!items.length) {
@@ -430,18 +431,21 @@ async function loadRecommended(slug) {
       return;
     }
 
+    const recLang = currentLang();
     items.forEach((item) => {
       const poster = item.poster_url ? imageUrl(item.poster_url) : "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Poster";
+      const title = recLang === "en" ? (item.origin_name || item.name) : item.name;
 
+      const subTitle = recLang === "en" ? "" : item.origin_name;
       const html = `
         <div class="movie-box">
           <a class="movie-box__card" href="DetailPage.html?slug=${item.slug}">
-            <div class="movie-box__info-top"><div class="movie-box__info-ep-top"><span>${item.type === "single" ? "Phim" : "Series"}</span></div></div>
+            <div class="movie-box__info-top"><div class="movie-box__info-ep-top"><span>${item.type === "single" ? (recLang === "en" ? "Movie" : "Phim") : (recLang === "en" ? "Series" : "Series")}</span></div></div>
             <div class="movie-box__poster"><img class="movie-box__poster-img lazy-img" data-src="${poster}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%231a1a2e'/%3E%3C/svg%3E" alt="${item.name}" width="300" height="450" loading="lazy" decoding="async"></div>
           </a>
           <div class="movie-box__info">
-            <h4 class="movie-box__vietnam-title"><a href="DetailPage.html?slug=${item.slug}">${item.name}</a></h4>
-            <h4 class="movie-box__other-title"><a href="DetailPage.html?slug=${item.slug}">${item.origin_name}</a></h4>
+            <h4 class="movie-box__vietnam-title"><a href="DetailPage.html?slug=${item.slug}">${title}</a></h4>
+            ${subTitle ? `<h4 class="movie-box__other-title"><a href="DetailPage.html?slug=${item.slug}">${subTitle}</a></h4>` : ""}
           </div>
         </div>`;
       container.insertAdjacentHTML("beforeend", html);

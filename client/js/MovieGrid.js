@@ -1,6 +1,7 @@
-import { KKPHIM_API, imageUrl } from "../config.js";
-import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
+import { imageUrl } from "../config.js";
+import { cachedHTML } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
+import { extractItems, apiFetch } from "../js/api-adapter.js";
 
 let movieCardTemplate = "";
 let tvCardTemplate = "";
@@ -71,8 +72,8 @@ function renderGrid(gridId, items = [], type = "phim-le") {
 
 async function fetchList(endpoint, limit = 12) {
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/${endpoint}&limit=${limit}`, 5 * 60 * 1000);
-    return data?.data?.items || [];
+    const data = await apiFetch(`/v1/api/danh-sach/${endpoint}&limit=${limit}`, 5 * 60 * 1000);
+    return extractItems(data);
   } catch (err) {
     console.error("Lỗi khi fetch KKPHIM:", err);
     return [];
@@ -81,8 +82,9 @@ async function fetchList(endpoint, limit = 12) {
 
 async function fetchBySlug(slug) {
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/v1/api/phim/${slug}`, 30 * 60 * 1000);
-    return data?.data?.item || null;
+    const data = await apiFetch(`/v1/api/phim/${slug}`, 30 * 60 * 1000);
+    const d = data?.data;
+    return d?.item || null;
   } catch (err) {
     console.error(`Lỗi khi fetch slug ${slug}:`, err);
     return null;

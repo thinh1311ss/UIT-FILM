@@ -1,5 +1,6 @@
-import { KKPHIM_API, imageUrl } from "../config.js";
+import { imageUrl } from "../config.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
+import { extractMovie, extractEpisodes, extractItems, apiFetch } from "../js/api-adapter.js";
 
 const params = new URLSearchParams(window.location.search);
 const slug = params.get("slug");
@@ -12,11 +13,9 @@ let episodes = [];
 
 async function fetchMovie() {
   try {
-    const res = await fetch(`${KKPHIM_API}/phim/${slug}`);
-    if (!res.ok) throw new Error("Movie not found");
-    const data = await res.json();
-    movie = data.movie;
-    episodes = data.episodes || [];
+    const data = await apiFetch(`/phim/${slug}`, 30 * 60 * 1000);
+    movie = extractMovie(data);
+    episodes = extractEpisodes(data);
 
     document.title = `${movie.name} - Xem phim`;
     document.getElementById("movie-title").textContent = movie.name;
@@ -256,9 +255,8 @@ async function renderRelatedMovies() {
     const firstCat = movie.category?.[0]?.slug;
     if (!firstCat) { container.innerHTML = ""; return; }
 
-    const res = await fetch(`${KKPHIM_API}/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`);
-    const data = await res.json();
-    const items = (data?.data?.items || []).slice(0, 12);
+    const data = await apiFetch(`/v1/api/the-loai/${firstCat}?sort_field=modified.time&sort_type=desc&limit=12`, 5 * 60 * 1000);
+    const items = extractItems(data).slice(0, 12);
 
     container.innerHTML = "";
     if (!items.length) {

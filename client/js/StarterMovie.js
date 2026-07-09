@@ -1,6 +1,7 @@
-import { KKPHIM_API, API_URL, imageUrl } from "../config.js";
+import { API_URL, imageUrl } from "../config.js";
 import { cachedFetch } from "../js/cache-utils.js";
 import { favoritesManager } from "../js/Favorite.js";
+import { extractItems, extractMovie, apiFetch, stripHTML } from "../js/api-adapter.js";
 
 const FALLBACK_POSTER = "https://placehold.co/300x450/1a1a2e/0891b2?text=No+Image";
 const FALLBACK_BG = "https://placehold.co/1920x1080/1a1a2e/0891b2?text=No+Image";
@@ -129,14 +130,21 @@ function translateTime(timeStr) {
   return timeStr.replace(/phút\/tập/g, "min/ep").replace(/phút/g, "min").replace(/giờ/g, "h");
 }
 
+const transCache = new Map();
+
 async function translateText(text, targetLang) {
   if (targetLang === "vi" || !text) return text;
+  const cacheKey = text.slice(0, 100) + "|" + targetLang;
+  const cached = transCache.get(cacheKey);
+  if (cached) return cached;
   try {
     const res = await fetch(
       `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
     );
     const data = await res.json();
-    return data?.[0]?.map((s) => s?.[0]).filter(Boolean).join(" ") || text;
+    const result = data?.[0]?.map((s) => s?.[0]).filter(Boolean).join(" ") || text;
+    transCache.set(cacheKey, result);
+    return result;
   } catch {
     return text;
   }
@@ -191,15 +199,22 @@ function renderContent() {
 
   if (descEl) {
     const maxLen = 250;
-    const desc = decodeHTML((m._translatedDesc || m.description) || "");
-    descEl.textContent = desc.length > maxLen ? desc.slice(0, maxLen) + "..." : desc;
+    if (m._translatedDesc) {
+      const d = stripHTML(m._translatedDesc);
+      descEl.textContent = d.length > maxLen ? d.slice(0, maxLen) + "..." : d;
+    } else if (showLang === "vi") {
+      const d = stripHTML(m.description || "");
+      descEl.textContent = d.length > maxLen ? d.slice(0, maxLen) + "..." : d;
+    } else {
+      descEl.textContent = "";
+    }
   }
 
   if (showLang !== "vi" && m.description && !m._translatedDesc) {
     translateText(m.description, showLang === "en" ? "en" : showLang).then((t) => {
       m._translatedDesc = t;
       if (descEl) {
-        const d = decodeHTML(t || "");
+        const d = stripHTML(t || "");
         descEl.textContent = d.length > 250 ? d.slice(0, 250) + "..." : d;
       }
     });
@@ -246,8 +261,9 @@ function next() {
 // Trailer Logic
 async function getTrailerUrl(slug) {
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 10 * 60 * 1000);
-    const trailerUrl = data?.movie?.trailer_url;
+    const data = await apiFetch(`/phim/${slug}`, 10 * 60 * 1000);
+    const movieData = extractMovie(data);
+    const trailerUrl = movieData?.trailer_url;
     if (trailerUrl) {
       const match = trailerUrl.match(
         /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/
@@ -366,11 +382,11 @@ async function fetchMovies() {
     const lang = getLang();
     console.log("Fetching movies with language:", lang);
 
-    const data = await cachedFetch(
-      `${KKPHIM_API}/v1/api/danh-sach/phim-chieu-rap?sort_field=year&sort_type=desc&limit=10`,
+    const data = await apiFetch(
+      `/v1/api/danh-sach/phim-chieu-rap?sort_field=year&sort_type=desc&limit=10`,
       10 * 60 * 1000
     );
-    let items = data?.data?.items || [];
+    let items = extractItems(data);
 
     if (!items.length) {
       console.warn("No movies returned from KKPHIM");
@@ -397,8 +413,8 @@ async function fetchMovies() {
     document.head.appendChild(preloadLink);
 
     // Fetch slide 1 detail
-    const firstDetailData = await cachedFetch(`${KKPHIM_API}/phim/${firstItem.slug}`, 10 * 60 * 1000);
-    const firstMovie = firstDetailData.movie;
+    const firstDetailData = await apiFetch(`/phim/${firstItem.slug}`, 10 * 60 * 1000);
+    const firstMovie = extractMovie(firstDetailData);
 
     let overview = (firstMovie?.content || "").trim();
     if (!overview) overview = lang === "vi" ? "Không có mô tả." : "No overview available.";
@@ -420,6 +436,16 @@ async function fetchMovies() {
       description: overview,
     };
 
+    if (lang !== "vi" && overview) {
+      translateText(overview, lang).then((t) => {
+        firstMovieData._translatedDesc = t;
+        if (index === 0 && descEl) {
+          const d = stripHTML(t || "");
+          descEl.textContent = d.length > 250 ? d.slice(0, 250) + "..." : d;
+        }
+      });
+    }
+
     movies = [firstMovieData];
     index = 0;
 
@@ -434,17 +460,21 @@ async function fetchMovies() {
       const restResults = await Promise.all(
         slugs.slice(1).map(async (item) => {
           try {
-            const detailData = await cachedFetch(`${KKPHIM_API}/phim/${item.slug}`, 10 * 60 * 1000);
-            const movie = detailData.movie;
+            const detailData = await apiFetch(`/phim/${item.slug}`, 10 * 60 * 1000);
+            const movie = extractMovie(detailData);
             const tUrl2 = item.thumb_url ? imageUrl(item.thumb_url) : "";
             const pUrl2 = item.poster_url ? imageUrl(item.poster_url) : "";
             let ov = (movie?.content || "").trim();
             if (!ov) ov = lang === "vi" ? "Không có mô tả." : "No overview available.";
+            if (lang !== "vi" && ov) {
+              translateText(ov, lang).then((t) => { item._translatedDesc = t; });
+            }
             return {
               id: item.slug,
               slug: item.slug,
               title: item.name || item.origin_name,
               englishTitle: item.origin_name || item.name,
+              _translatedDesc: item._translatedDesc || null,
               backgroundImage: tUrl2 || pUrl2 || FALLBACK_BG,
               thumbnailImage: pUrl2 || FALLBACK_POSTER,
               imdbRating: movie?.tmdb?.vote_average > 0 ? movie.tmdb.vote_average.toFixed(1) : "N/A",

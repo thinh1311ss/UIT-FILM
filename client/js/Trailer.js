@@ -1,5 +1,5 @@
-import { KKPHIM_API } from "../config.js";
-import { cachedFetch } from "../js/cache-utils.js";
+import { extractMovie, apiFetch } from "../js/api-adapter.js";
+import { extractMovie, apiFetch } from "../js/api-adapter.js";
 
 const trailerBtn = document.getElementById("trailer-btn");
 const trailerModal = document.getElementById("trailer-modal");
@@ -19,8 +19,9 @@ async function getTrailerUrl() {
   if (!slug) return null;
 
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/phim/${slug}`, 30 * 60 * 1000);
-    return data.movie?.trailer_url || null;
+    const data = await apiFetch(`/phim/${slug}`, 30 * 60 * 1000);
+    const movieData = extractMovie(data);
+    return movieData?.trailer_url || null;
   } catch {
     return null;
   }

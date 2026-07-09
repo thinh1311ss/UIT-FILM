@@ -5,11 +5,11 @@ export const API_URL = isDev
   ? "http://localhost:5000"
   : "https://uit-film.onrender.com";
 
-const IMG_CDN = "https://phimimg.com";
+const IMG_CDN = "https://img.phimapi.com";
 
 export function imageUrl(src) {
   if (!src) return "";
-  const fullUrl = src.startsWith("http") ? src : `${IMG_CDN}/${src}`;
-  if (fullUrl.includes("placehold.co") || fullUrl.includes("ui-avatars.com")) return fullUrl;
-  return `${KKPHIM_API}/image.php?url=${encodeURIComponent(fullUrl)}`;
+  if (src.startsWith("http")) return src;
+  if (src.includes("placehold.co") || src.includes("ui-avatars.com")) return src;
+  return `${KKPHIM_API}/image.php?url=${encodeURIComponent(`${IMG_CDN}/${src}`)}`;
 }

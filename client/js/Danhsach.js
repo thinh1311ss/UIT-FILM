@@ -1,6 +1,7 @@
-import { KKPHIM_API, imageUrl } from "../config.js";
-import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
+import { imageUrl } from "../config.js";
+import { cachedHTML } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
+import { extractItems, estimateMaxPages, apiFetch } from "../js/api-adapter.js";
 
 let currentPage = 1;
 let currentType = "all";
@@ -28,8 +29,6 @@ const DOM = {
   genreItems: document.querySelectorAll(".filter__select-list.movie-genre .filter__select-list-item"),
   countryItems: document.querySelectorAll(".filter__select-list.country .filter__select-list-item"),
 };
-
-const DANHSACH_GENRES = new Set(["hoat-hinh"]);
 
 const GENRE_SLUG_MAP = {
   "hanh-dong": "hanh-dong",
@@ -62,6 +61,7 @@ const COUNTRY_SLUG_MAP = {
   "han-quoc": "han-quoc",
   "nhat-ban": "nhat-ban",
   "thai-lan": "thai-lan",
+  "my": "au-my",
   "au-my": "au-my",
   "dai-loan": "dai-loan",
   "hong-kong": "hong-kong",
@@ -264,52 +264,20 @@ async function render() {
 
     let items = [];
     let maxPages = 1;
-    const isGenreOrCountry = (country !== "all" && COUNTRY_SLUG_MAP[country]) || (genre !== "all" && GENRE_SLUG_MAP[genre]);
-
-    function getTotalPages(resp) {
-      const p1 = resp?.data?.paginate;
-      if (p1?.total_page) return p1.total_page;
-      if (p1?.total_items) return Math.ceil(p1.total_items / 18);
-      const p2 = resp?.paginate;
-      if (p2?.total_page) return p2.total_page;
-      if (p2?.total_items) return Math.ceil(p2.total_items / 18);
-      if (resp?.data?.totalPages) return resp.data.totalPages;
-      if (resp?.data?.totalItems) return Math.ceil(resp.data.totalItems / 18);
-      if (resp?.totalPages) return resp.totalPages;
-      if (resp?.totalItems) return Math.ceil(resp.totalItems / 18);
-      return null;
-    }
-    function estimateMaxPages(resp, limit) {
-      const apiPages = getTotalPages(resp);
-      if (apiPages !== null) return apiPages;
-      const itms = resp?.data?.items || resp?.items || [];
-      if (itms.length === 0) return currentPage;
-      if (itms.length >= limit) return 10;
-      return currentPage;
-    }
-
+    const hasGenre = genre !== "all" && GENRE_SLUG_MAP[genre];
+    const hasCountry = country !== "all" && COUNTRY_SLUG_MAP[country];
+    const hasFilter = hasGenre || hasCountry;
     const FETCH_LIMIT = 18;
 
-    if (country !== "all" && COUNTRY_SLUG_MAP[country]) {
-      const countrySlug = COUNTRY_SLUG_MAP[country];
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/quoc-gia/${countrySlug}?page=${currentPage}&limit=${FETCH_LIMIT}`, 5 * 60 * 1000);
-      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: getMediaTypeFromItem(i) }));
-      maxPages = estimateMaxPages(data, FETCH_LIMIT);
-    } else if (genre !== "all" && GENRE_SLUG_MAP[genre]) {
-      const genreSlug = GENRE_SLUG_MAP[genre];
-      const endpoint = DANHSACH_GENRES.has(genre) ? "danh-sach" : "the-loai";
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/${endpoint}/${genreSlug}?page=${currentPage}&limit=${FETCH_LIMIT}`, 5 * 60 * 1000);
-      items = (data?.data?.items || []).map(i => ({ ...i, _media_type: getMediaTypeFromItem(i) }));
-      maxPages = estimateMaxPages(data, FETCH_LIMIT);
-    } else if (type === "all") {
+    if (type === "all" && !hasFilter) {
       const [movieData, tvData, tvShowsData] = await Promise.all([
-        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-chieu-rap?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
-        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
-        cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/tv-shows?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
+        apiFetch(`/v1/api/danh-sach/phim-chieu-rap?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
+        apiFetch(`/v1/api/danh-sach/phim-bo?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
+        apiFetch(`/v1/api/danh-sach/tv-shows?page=${currentPage}&limit=10&sort_field=year&sort_type=desc`, 5 * 60 * 1000),
       ]);
-      const movieItems = (movieData?.data?.items || []).slice(0, 10).map(i => ({ ...i, _media_type: "movie" }));
-      const tvItems = (tvData?.data?.items || []).slice(0, 10).map(i => ({ ...i, _media_type: "tv" }));
-      const tvShowsItems = (tvShowsData?.data?.items || []).slice(0, 10).map(i => ({ ...i, _media_type: "tvshows" }));
+      const movieItems = extractItems(movieData).slice(0, 10).map(i => ({ ...i, _media_type: "movie" }));
+      const tvItems = extractItems(tvData).slice(0, 10).map(i => ({ ...i, _media_type: "tv" }));
+      const tvShowsItems = extractItems(tvShowsData).slice(0, 10).map(i => ({ ...i, _media_type: "tvshows" }));
       const combined = [];
       for (let i = 0; i < 10; i++) {
         if (movieItems[i]) combined.push(movieItems[i]);
@@ -323,21 +291,34 @@ async function render() {
         estimateMaxPages(tvShowsData, 10)
       );
     } else {
-      const slug = getTypeSlug(type);
-      const data = await cachedFetch(`${KKPHIM_API}/v1/api/danh-sach/${slug}?page=${currentPage}&limit=${FETCH_LIMIT}&sort_field=year&sort_type=desc`, 5 * 60 * 1000);
-      let rawItems = data?.data?.items || [];
-      const mediaType = type === "movie" ? "movie" : type === "tv" ? "tv" : "tvshows";
-      items = rawItems.map(i => ({ ...i, _media_type: mediaType }));
+      const qParams = new URLSearchParams();
+      qParams.set("page", currentPage);
+      qParams.set("limit", FETCH_LIMIT);
+      qParams.set("sort_field", sort.field);
+      qParams.set("sort_type", sort.dir);
+      if (hasGenre) qParams.set("category", GENRE_SLUG_MAP[genre]);
+      if (hasCountry) qParams.set("country", COUNTRY_SLUG_MAP[country]);
+
+      if (type === "all") {
+        const data = await apiFetch(`/v1/api/danh-sach?${qParams.toString()}`, 5 * 60 * 1000);
+        items = extractItems(data).map(i => ({ ...i, _media_type: getMediaTypeFromItem(i) }));
+        maxPages = estimateMaxPages(data, FETCH_LIMIT);
+      } else {
+        const slug = getTypeSlug(type);
+        const data = await apiFetch(`/v1/api/danh-sach/${slug}?${qParams.toString()}`, 5 * 60 * 1000);
+        const mediaType = type === "movie" ? "movie" : type === "tv" ? "tv" : "tvshows";
+        items = extractItems(data).map(i => ({ ...i, _media_type: mediaType }));
+        maxPages = estimateMaxPages(data, FETCH_LIMIT);
+      }
       items = sortByCountryPriority(items);
-      maxPages = estimateMaxPages(data, FETCH_LIMIT);
     }
 
-    if (isGenreOrCountry && arrange !== "new") {
+    if (hasFilter && arrange !== "new") {
       items.sort((a, b) => {
         let va, vb;
         if (sort.field === "rating") {
-          va = parseFloat(a.tmdb?.vote_average ?? a.tmdb?.vote_average ?? 0);
-          vb = parseFloat(b.tmdb?.vote_average ?? b.tmdb?.vote_average ?? 0);
+          va = parseFloat(a.tmdb?.vote_average ?? 0);
+          vb = parseFloat(b.tmdb?.vote_average ?? 0);
         } else {
           va = parseInt(a[sort.field]) || 0;
           vb = parseInt(b[sort.field]) || 0;

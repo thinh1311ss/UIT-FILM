@@ -1,6 +1,7 @@
-import { KKPHIM_API, imageUrl } from "../config.js";
-import { cachedFetch, cachedHTML } from "../js/cache-utils.js";
+import { imageUrl } from "../config.js";
+import { cachedHTML } from "../js/cache-utils.js";
 import { observeLazyImages } from "../js/lazy-utils.js";
+import { extractItems, extractTotalPage, apiFetch } from "../js/api-adapter.js";
 
 const params = new URLSearchParams(window.location.search);
 const query = params.get("query") || "";
@@ -74,8 +75,8 @@ async function loadResults(type = "all") {
   grid.innerHTML = `<p class="searchPage__placeholder">${t("search.loading") || "Đang tải..."}</p>`;
 
   try {
-    const data = await cachedFetch(`${KKPHIM_API}/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}&page=${currentPage}`, 2 * 60 * 1000);
-    const items = data?.data?.items || data.items || [];
+    const data = await apiFetch(`/v1/api/tim-kiem?keyword=${encodeURIComponent(query)}&page=${currentPage}`, 2 * 60 * 1000);
+    const items = extractItems(data);
 
     let filtered = items;
     if (type === "movie") {
@@ -85,7 +86,7 @@ async function loadResults(type = "all") {
     }
 
     allResults = filtered.slice(0, 18);
-    totalPages = data?.data?.paginate?.total_page || data?.paginate?.total_page || 1;
+    totalPages = extractTotalPage(data) || 1;
 
     renderResults();
     renderPagination();
