@@ -24,9 +24,10 @@ async function fetchMovie() {
 
     renderServers();
     renderEpisodeGrid();
-    renderRelatedMovies();
 
     loadVideo(currentServer, currentEp);
+
+    renderRelatedMovies();
   } catch (error) {
     document.getElementById("movie-title").textContent = "Không tìm thấy phim";
     document.getElementById("player-loading").innerHTML = `
