@@ -11,5 +11,6 @@ export function imageUrl(src) {
   if (!src) return "";
   if (src.startsWith("http")) return src;
   if (src.includes("placehold.co") || src.includes("ui-avatars.com")) return src;
-  return `${KKPHIM_API}/image.php?url=${encodeURIComponent(`${IMG_CDN}/${src}`)}`;
+  if (src.startsWith("/")) return `${IMG_CDN}${src}`;
+  return `${IMG_CDN}/${src}`;
 }
