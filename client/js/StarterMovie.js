@@ -383,7 +383,7 @@ async function fetchMovies() {
     console.log("Fetching movies with language:", lang);
 
     const data = await apiFetch(
-      `/v1/api/danh-sach/phim-chieu-rap?sort_field=year&sort_type=desc&limit=10`,
+      `/v1/api/danh-sach/phim-chieu-rap?sort_field=modified.time&sort_type=desc&limit=10`,
       10 * 60 * 1000
     );
     let items = extractItems(data);

@@ -139,7 +139,7 @@ const TOP_TV_SLUGS = [
 
 async function loadMovieGrids() {
   try {
-    const yearParams = "?sort_field=year&sort_type=desc";
+    const yearParams = "?sort_field=modified.time&sort_type=desc";
     const viewParams = "?sort_field=view&sort_type=desc";
 
     const [

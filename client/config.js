@@ -5,12 +5,13 @@ export const API_URL = isDev
   ? "http://localhost:5000"
   : "https://uit-film.onrender.com";
 
-const IMG_CDN = "https://img.phimapi.com";
+const IMG_CDN = "https://phimimg.com";
 
 export function imageUrl(src) {
   if (!src) return "";
-  if (src.startsWith("http")) return src;
   if (src.includes("placehold.co") || src.includes("ui-avatars.com")) return src;
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  if (src.startsWith("//")) return `https:${src}`;
   if (src.startsWith("/")) return `${IMG_CDN}${src}`;
   return `${IMG_CDN}/${src}`;
 }
