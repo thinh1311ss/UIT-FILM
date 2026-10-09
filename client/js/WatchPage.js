@@ -104,12 +104,12 @@ function loadVideo(serverIdx, epIdx) {
   const linkEmbed = ep.link_embed || "";
   const linkDirect = ep.link_direct || "";
 
-  if (linkM3U8) {
+  if (linkEmbed) {
+    loadEmbed(linkEmbed, container, ep);
+  } else if (linkM3U8) {
     loadHLS(linkM3U8, container, ep);
   } else if (linkDirect) {
     loadDirectVideo(linkDirect, container, ep);
-  } else if (linkEmbed) {
-    loadEmbed(linkEmbed, container, ep);
   } else {
     container.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;">
@@ -205,7 +205,7 @@ function loadEmbed(url, container, ep) {
     : url;
   container.innerHTML = `<iframe
     src="${src}"
-    sandbox="allow-scripts allow-same-origin allow-forms"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
     allow="autoplay; encrypted-media; fullscreen"
     allowfullscreen
     style="width:100%;height:100%;border:none;"
