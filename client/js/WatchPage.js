@@ -104,12 +104,12 @@ function loadVideo(serverIdx, epIdx) {
   const linkEmbed = ep.link_embed || "";
   const linkDirect = ep.link_direct || "";
 
-  if (linkEmbed) {
-    loadEmbed(linkEmbed, container, ep);
-  } else if (linkM3U8) {
+  if (linkM3U8) {
     loadHLS(linkM3U8, container, ep);
   } else if (linkDirect) {
     loadDirectVideo(linkDirect, container, ep);
+  } else if (linkEmbed) {
+    loadEmbed(linkEmbed, container, ep);
   } else {
     container.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;">
@@ -145,11 +145,9 @@ function showPlayOverlay(video) {
   overlay.querySelector("button").style.cssText = `
     background:none;border:none;color:#fff;cursor:pointer;text-align:center;
   `;
-  overlay.addEventListener("click", (e) => {
-    if (e.target.closest(".play-overlay__btn")) {
-      video.muted = false;
-      video.play().then(() => overlay.remove()).catch(() => {});
-    }
+  overlay.addEventListener("click", () => {
+    video.muted = false;
+    video.play().then(() => overlay.remove()).catch(() => {});
   });
   container.style.position = "relative";
   container.appendChild(overlay);
@@ -159,22 +157,41 @@ function loadHLS(url, container, ep) {
   container.innerHTML = `<video class="hls-player" controls autoplay muted playsinline></video>`;
   const video = container.querySelector("video");
 
-  if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = url;
-    attemptPlay(video);
-  } else if (window.Hls) {
-    const hls = new Hls();
+  const fallbackToEmbed = () => {
+    console.warn("HLS không tải được, chuyển sang embed fallback");
+    loadEmbed(ep?.link_embed || url, container, ep);
+  };
+
+  if (window.Hls && Hls.isSupported()) {
+    const hls = new Hls({
+      enableWorker: true,
+      lowLatencyMode: true,
+    });
     hls.loadSource(url);
     hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, () => attemptPlay(video));
     hls.on(Hls.Events.ERROR, (event, data) => {
       if (data.fatal) {
-        console.error("HLS fatal error, trying embed fallback");
-        loadEmbed(url, container, ep);
+        console.error("HLS fatal error:", data);
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            hls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            hls.recoverMediaError();
+            break;
+          default:
+            hls.destroy();
+            fallbackToEmbed();
+            break;
+        }
       }
     });
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = url;
+    attemptPlay(video);
   } else {
-    loadEmbed(url, container, ep);
+    fallbackToEmbed();
   }
 
   setupAutoNext(video, ep);
@@ -188,7 +205,8 @@ function loadEmbed(url, container, ep) {
     : url;
   container.innerHTML = `<iframe
     src="${src}"
-    allow="autoplay; encrypted-media"
+    sandbox="allow-scripts allow-same-origin allow-forms"
+    allow="autoplay; encrypted-media; fullscreen"
     allowfullscreen
     style="width:100%;height:100%;border:none;"
   ></iframe>`;
